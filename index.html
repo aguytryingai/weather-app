@@ -123,7 +123,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v1.3.0</div></div>
   <div class="offline" id="offlineBar" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
     <div><h1>Skyward</h1><div class="loc" id="locName">—</div></div>
@@ -145,6 +145,9 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </div>
 
 <script>
+const VERSION='1.3.0';
+console.log('Skyward Weather v'+VERSION);
+
 /* ================= WEATHER CODES — day/night aware ================= */
 const WMO={0:['Clear','☀️','🌙'],1:['Mostly clear','🌤️','🌙'],2:['Partly cloudy','⛅','☁️'],3:['Overcast','☁️','☁️'],
 45:['Fog','🌫️','🌫️'],48:['Rime fog','🌫️','🌫️'],51:['Light drizzle','🌦️','🌧️'],53:['Drizzle','🌦️','🌧️'],55:['Heavy drizzle','🌧️','🌧️'],
@@ -182,7 +185,9 @@ async function fetchWeather(lat,lon,name){
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=10`);
   if(!r.ok) throw new Error('weather HTTP '+r.status);
   const d=await r.json();
-  const nowIdx=Math.max(0,d.hourly.time.findIndex(t=>new Date(t)>=new Date())-1);
+  // BUG FIX: compare against the LOCATION's local time (d.current.time), not device time —
+  // otherwise the hourly strip is offset by the timezone difference for remote cities
+  const nowIdx=Math.max(0,d.hourly.time.findIndex(t=>t>=d.current.time)-1);
   const wx={lat,lon,location:name,updated:Date.now(),
     current:{temp:Math.round(d.current.temperature_2m),feels:Math.round(d.current.apparent_temperature),
       hum:d.current.relative_humidity_2m,wind:Math.round(d.current.wind_speed_10m),
@@ -215,7 +220,9 @@ async function suggest(q){
 async function bmp(url){const r=await fetch(url);if(!r.ok)throw 0;return createImageBitmap(await r.blob());}
 function mercator(lat,lon,z){const n=2**z;return{xf:(lon+180)/360*n,yf:(1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n};}
 
+let radarToken=0;
 async function loadRadar(lat,lon){
+  const tok=++radarToken;   // BUG FIX: guard against race when switching cities quickly
   const R=S.radar; R.ready=false; R.fail=''; R.tiles={}; R.base=[]; R.frames=[];
   try{
     const meta=await (await fetch('https://api.rainviewer.com/public/weather-maps.json')).json();
@@ -234,10 +241,11 @@ async function loadRadar(lat,lon){
       });
     }
     await Promise.all(jobs);
+    if(tok!==radarToken) return;   // a newer load superseded this one — discard
     const withTiles=R.frames.filter(f=>(R.tiles[f.time]||[]).length>0);
     if(!withTiles.length) throw new Error('tiles blocked');
     R.frames=withTiles; R.idx=Math.max(0,R.frames.length-4); R.ready=true;
-  }catch(e){R.fail=e.message||'unavailable';}
+  }catch(e){if(tok!==radarToken)return;R.fail=e.message||'unavailable';}
   if(S.tab==='radar')render();
 }
 function drawRadar(){
@@ -290,7 +298,7 @@ function render(){
       </div>
       <div class="sect">Next hours</div>
       <div class="hstrip">${wx.hourly.slice(0,12).map(h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i">${h.c.icon}</div><div class="d">${h.temp}°</div><div class="p">${h.p>5?h.p+'%':''}</div></div>`).join('')}</div>
-      <div class="note">Updated ${new Date(wx.updated).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}${wx.fromCache?' · cached':''}</div>`;
+      <div class="note">Updated ${new Date(wx.updated).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}${wx.fromCache?' · cached':''} · v${VERSION}</div>`;
   }
   else if(S.tab==='hourly'){
     B.innerHTML=`<div class="sect">24-hour forecast</div>
@@ -344,7 +352,12 @@ async function switchLocation(id){
 function removeLocation(id){
   S.locations=S.locations.filter(l=>l.id!==id);
   store.set('locs',S.locations);
-  if(S.sel===id) switchLocation(S.locations[0].id); else render();
+  if(S.sel===id){
+    // BUG FIX: pick the first location that actually has coordinates —
+    // the GPS entry has lat null if location permission was denied
+    const next=S.locations.find(l=>l.lat!=null)||S.locations[0];
+    if(next&&next.lat!=null) switchLocation(next.id); else {S.sel=next?next.id:null;render();}
+  } else render();
 }
 let suggList=[],suggTimer=null;
 function renderSugg(){
@@ -404,10 +417,25 @@ document.addEventListener('visibilitychange',()=>{                              
   if(!document.hidden&&S.wx&&Date.now()-S.wx.updated>6e5){const L=S.locations.find(l=>l.id===S.sel);if(L)loadFor(L);}});
 
 /* ================= PWA install + service worker ================= */
-const isCover=window.innerWidth<380;
-if(isCover){S.tab='now';}  // cover display: always show Now (big temp)
+// BUG FIX: cover state was computed once at load, so flipping the phone
+// mid-session never re-rendered. Now it tracks resize/flip transitions live.
+function coverCheck(){
+  const cover=window.innerWidth<380;
+  if(cover&&S.tab!=='now'){S.tab='now';render();}   // cover locks to Now view (tabs are hidden there)
+  return cover;
+}
+coverCheck();
+let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(coverCheck,150);});
 
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator){
+  // ?v= forces the browser to fetch the new worker whenever the version bumps,
+  // and the reload below activates it in one relaunch instead of two
+  navigator.serviceWorker.register('sw.js?v='+VERSION).then(r=>r.update()).catch(()=>{});
+  let reloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!reloaded){reloaded=true;location.reload();}
+  });
+}
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').style.display='block';});
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').style.display='none';};

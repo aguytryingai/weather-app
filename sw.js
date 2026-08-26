@@ -1,6 +1,7 @@
-const SHELL_CACHE = 'skyward-shell-v1';
-const DATA_CACHE  = 'skyward-data-v1';
-const TILE_CACHE  = 'skyward-tiles-v1';
+const VERSION     = '1.3.0';
+const SHELL_CACHE = 'skyward-shell-' + VERSION;
+const DATA_CACHE  = 'skyward-data-'  + VERSION;
+const TILE_CACHE  = 'skyward-tiles-' + VERSION;
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -15,31 +16,41 @@ self.addEventListener('activate', e => {
   );
 });
 
+async function trimCache(name, max) {
+  const c = await caches.open(name);
+  const keys = await c.keys();
+  if (keys.length > max) await Promise.all(keys.slice(0, keys.length - max).map(k => c.delete(k)));
+}
+
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
   // App shell: cache-first
   if (url.origin === location.origin) {
-    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(r => r || fetch(e.request)));
     return;
   }
 
-  // Map/radar tiles: cache-first (immutable per-URL), cap growth by cache name versioning
-  if (url.hostname.endsWith('cartocdn.com') || url.hostname.endsWith('rainviewer.com')) {
+  // Tile IMAGES only (.png): cache-first — tiles are immutable per-URL.
+  // BUG FIX: previously this matched ALL of rainviewer.com, which froze the
+  // weather-maps.json frame list in cache forever -> radar never updated.
+  if (url.pathname.endsWith('.png') &&
+      (url.hostname.endsWith('cartocdn.com') || url.hostname.endsWith('rainviewer.com'))) {
     e.respondWith(
       caches.open(TILE_CACHE).then(async c => {
         const hit = await c.match(e.request);
         if (hit) return hit;
         const res = await fetch(e.request);
-        if (res.ok) c.put(e.request, res.clone());
+        if (res.ok) { c.put(e.request, res.clone()); trimCache(TILE_CACHE, 300); }
         return res;
       })
     );
     return;
   }
 
-  // Weather/geo/alerts APIs: network-first, fall back to last good response (true offline mode)
-  if (url.hostname.includes('open-meteo.com') || url.hostname.includes('openstreetmap.org') || url.hostname.includes('weather.gov')) {
+  // APIs + radar frame metadata: network-first, fall back to last good response
+  if (url.hostname.includes('open-meteo.com') || url.hostname.includes('openstreetmap.org') ||
+      url.hostname.includes('weather.gov')    || url.hostname.includes('rainviewer.com')) {
     e.respondWith(
       fetch(e.request).then(res => {
         if (res.ok) caches.open(DATA_CACHE).then(c => c.put(e.request, res.clone()));
