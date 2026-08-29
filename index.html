@@ -13,8 +13,24 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;background:var(--bg2);color:var(--txt);display:flex;justify-content:center}
-#app{width:100%;max-width:520px;height:100dvh;display:flex;flex-direction:column;background:linear-gradient(175deg,var(--bg1),var(--bg2));overflow:hidden;
+#app{width:100%;max-width:520px;height:100dvh;display:flex;flex-direction:column;background:linear-gradient(175deg,var(--bg1),var(--bg2));overflow:hidden;position:relative;
   padding-top:env(safe-area-inset-top)}
+#locBtn{cursor:pointer}
+.sheet{position:absolute;inset:0;z-index:40;background:linear-gradient(175deg,#1E3049,var(--bg2));display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top);animation:up .22s ease}
+@keyframes up{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
+.sheet[hidden]{display:none}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 8px;font-size:17px;font-weight:600}
+.loclist{flex:1;overflow-y:auto;padding:6px 12px 18px;scrollbar-width:none}
+.loclist::-webkit-scrollbar{display:none}
+.locrow{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:14px;cursor:pointer;margin-bottom:4px}
+.locrow:active,.locrow.sel{background:var(--card)}
+.locrow .nm{flex:1;min-width:0}
+.locrow .nm b{font-size:15px;font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.locrow .nm span{font-size:11.5px;color:var(--dim)}
+.locrow .wx{font-size:15px;display:flex;align-items:center;gap:7px;color:var(--dim2);flex-shrink:0}
+.locrow .del{background:none;border:none;color:#7E9CBE;font-size:14px;padding:6px 8px;cursor:pointer;flex-shrink:0}
+.locrow .del:active{color:var(--alert)}
 /* Cover display mode: <380px wide (3.4" screen) */
 @media(max-width:379px){
   #app{max-width:100%;padding-top:max(env(safe-area-inset-top),8px)}
@@ -23,9 +39,10 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
   .head .loc{font-size:11px}
   .hbtns{gap:6px}
   .icon-btn{width:30px;height:30px;font-size:13px}
-  .searchrow,#alertSlot{display:none!important}
-  .locstrip{padding:4px 10px;gap:4px}
-  .chip{font-size:11px;padding:4px 9px}
+  #alertSlot{display:none!important}
+  .sheet-head{padding:10px 12px 6px;font-size:14px}
+  .locrow{padding:9px 8px}
+  .locrow .nm b{font-size:13px}
   .body{padding:6px}
   .hero{padding:8px 10px 6px}
   .hero .ic{font-size:40px}
@@ -67,11 +84,6 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 .sugg .it:active{background:rgba(255,255,255,.08)}
 .sugg .it .sub{font-size:11.5px;color:var(--dim);text-align:right;flex-shrink:0}
 .sugg .none{padding:11px 14px;font-size:12.5px;color:var(--dim)}
-.locstrip{display:flex;gap:7px;overflow-x:auto;padding:8px 18px;flex-shrink:0;scrollbar-width:none}
-.locstrip::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;font-size:12.5px;padding:6px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#BBD2EA;cursor:pointer;display:flex;align-items:center;gap:6px}
-.chip.sel{background:var(--blue);border-color:var(--blue);color:#fff}
-.chip .x{opacity:.6;font-size:11px;padding:0 2px}
 .alert{margin:2px 18px 6px;padding:10px 13px;border-radius:12px;background:rgba(228,87,46,.22);border-left:3px solid var(--alert);font-size:12.5px;line-height:1.45;flex-shrink:0}
 .alert b{display:block;font-size:13px}
 .body{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:8px;scrollbar-width:none}
@@ -123,29 +135,32 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v1.3.0</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v1.4.0</div></div>
   <div class="offline" id="offlineBar" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
-    <div><h1>Skyward</h1><div class="loc" id="locName">—</div></div>
+    <div id="locBtn"><h1>Skyward</h1><div class="loc" id="locName">— ▾</div></div>
     <div class="hbtns">
       <button class="icon-btn" id="installBtn" title="Install app">⬇</button>
-      <button class="icon-btn" id="btnSearch" title="Add location">＋</button>
+      <button class="icon-btn" id="btnSearch" title="Locations">📍</button>
       <button class="icon-btn" id="btnRefresh" title="Refresh">⟳</button>
     </div>
   </div>
-  <div class="searchrow" id="searchRow" style="display:none">
-    <input id="searchInput" placeholder="Search a city…" autocomplete="off">
-    <button id="searchGo">Add</button>
-  </div>
-  <div class="sugg" id="suggBox"></div>
-  <div class="locstrip" id="locStrip"></div>
   <div id="alertSlot"></div>
   <div class="body" id="body"></div>
   <div class="tabs" id="tabs"></div>
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-head"><span>Locations</span><button class="icon-btn" id="sheetClose">✕</button></div>
+    <div class="searchrow">
+      <input id="searchInput" placeholder="Search a city…" autocomplete="off">
+      <button id="searchGo">Add</button>
+    </div>
+    <div class="sugg" id="suggBox"></div>
+    <div class="loclist" id="locList"></div>
+  </div>
 </div>
 
 <script>
-const VERSION='1.3.0';
+const VERSION='1.4.0';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -273,12 +288,7 @@ const fmtSun=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digi
 
 function render(){
   const wx=S.wx; if(!wx) return;
-  $('locName').textContent='📍 '+wx.location+(wx.fromCache?'':'');
-  $('locStrip').innerHTML=S.locations.map(l=>
-    `<span class="chip ${l.id===S.sel?'sel':''}" data-id="${l.id}">${l.isGPS?'◉ ':''}${l.name}${l.isGPS?'':`<span class="x" data-x="${l.id}">✕</span>`}</span>`).join('');
-  $('locStrip').querySelectorAll('.chip').forEach(ch=>ch.onclick=e=>{
-    if(e.target.dataset.x){removeLocation(e.target.dataset.x);return;}
-    switchLocation(ch.dataset.id);});
+  $('locName').textContent='📍 '+wx.location+' ▾';
   $('alertSlot').innerHTML=S.alerts.length?`<div class="alert"><b>⚠ ${S.alerts[0].event}</b>${(S.alerts[0].head||'').slice(0,120)}</div>`:'';
   $('tabs').innerHTML=[['now','🌡️','Now'],['hourly','🕐','Hourly'],['daily','📅','10-Day'],['radar','🛰️','Radar']]
     .map(([id,ic,lb])=>`<button class="${S.tab===id?'on':''}" data-t="${id}"><span class="ic">${ic}</span>${lb}</button>`).join('');
@@ -353,13 +363,44 @@ function removeLocation(id){
   S.locations=S.locations.filter(l=>l.id!==id);
   store.set('locs',S.locations);
   if(S.sel===id){
-    // BUG FIX: pick the first location that actually has coordinates —
-    // the GPS entry has lat null if location permission was denied
     const next=S.locations.find(l=>l.lat!=null)||S.locations[0];
     if(next&&next.lat!=null) switchLocation(next.id); else {S.sel=next?next.id:null;render();}
   } else render();
+  renderLocList();
 }
-let suggList=[],suggTimer=null;
+
+/* ================= LOCATIONS SHEET ================= */
+function openSheet(focus){$('sheet').hidden=false;renderLocList();if(focus)$('searchInput').focus();}
+function closeSheet(){$('sheet').hidden=true;$('searchInput').value='';suggList=[];renderSugg();}
+$('locBtn').onclick=()=>openSheet(false);
+$('btnSearch').onclick=()=>openSheet(true);
+$('sheetClose').onclick=closeSheet;
+
+function renderLocList(){
+  if($('sheet').hidden) return;
+  $('locList').innerHTML=S.locations.map(l=>{
+    const key=l.lat!=null?`wx:${l.lat.toFixed(3)},${l.lon.toFixed(3)}`:null;
+    const w=key?(cget(key)||store.get('last:'+key,null)):null;
+    const wxCell=l.lat==null?'<span style="font-size:11px">tap to locate</span>'
+      :w?`<span>${w.current.c.icon}</span><span>${w.current.temp}°</span>`:'<span>…</span>';
+    return `<div class="locrow ${l.id===S.sel?'sel':''}" data-id="${l.id}">
+      <div class="nm"><b>${l.isGPS?'◉ ':''}${l.name}</b><span>${l.isGPS?'Current location':''}</span></div>
+      <div class="wx">${wxCell}</div>
+      ${l.isGPS?'':`<button class="del" data-del="${l.id}">✕</button>`}</div>`;
+  }).join('');
+  $('locList').querySelectorAll('.locrow').forEach(r=>r.onclick=async e=>{
+    if(e.target.dataset.del){removeLocation(e.target.dataset.del);return;}
+    const L=S.locations.find(l=>l.id===r.dataset.id);
+    if(L&&L.lat==null&&L.isGPS){closeSheet();boot();return;}   // GPS retry
+    closeSheet(); await switchLocation(r.dataset.id);
+  });
+  // lazily fill missing temps, then refresh the list once
+  const missing=S.locations.filter(l=>l.lat!=null&&!cget(`wx:${l.lat.toFixed(3)},${l.lon.toFixed(3)}`)&&!store.get(`last:wx:${l.lat.toFixed(3)},${l.lon.toFixed(3)}`,null));
+  if(missing.length) Promise.allSettled(missing.map(l=>fetchWeather(l.lat,l.lon,l.name))).then(renderLocList);
+}
+
+/* ================= SEARCH ================= */
+let suggList=[],suggTimer=null,suggSeq=0;
 function renderSugg(){
   const q=$('searchInput').value.trim();
   $('suggBox').innerHTML=suggList.length
@@ -369,8 +410,11 @@ function renderSugg(){
 }
 async function pickSugg(i){
   const g=suggList[i]; if(!g) return;
-  suggList=[];renderSugg();
-  $('searchInput').value='';$('searchRow').style.display='none';
+  suggList=[];renderSugg();$('searchInput').value='';
+  // dedupe: if this city is already saved, just switch to it
+  const dup=S.locations.find(l=>l.lat!=null&&Math.abs(l.lat-g.lat)<0.05&&Math.abs(l.lon-g.lon)<0.05);
+  closeSheet();
+  if(dup){await switchLocation(dup.id);return;}
   const id='loc'+Date.now();
   S.locations.push({id,name:g.name,lat:g.lat,lon:g.lon});
   store.set('locs',S.locations);
@@ -380,14 +424,23 @@ $('searchInput').addEventListener('input',()=>{
   const q=$('searchInput').value.trim();
   clearTimeout(suggTimer);
   if(q.length<2){suggList=[];renderSugg();return;}
+  const seq=++suggSeq;
   suggTimer=setTimeout(async()=>{
-    try{suggList=await suggest(q);}catch(e){suggList=[];}
-    renderSugg();
+    let r=[];try{r=await suggest(q);}catch(e){}
+    if(seq!==suggSeq) return;         // stale response — a newer keystroke superseded it
+    suggList=r;renderSugg();
   },250);
 });
-function addLocation(){ if(suggList.length)pickSugg(0); }
-$('btnSearch').onclick=()=>{const r=$('searchRow');r.style.display=r.style.display==='none'?'flex':'none';
-  if(r.style.display==='flex')$('searchInput').focus(); else{suggList=[];renderSugg();}};
+// BUG FIX: Add/Enter used to require suggestions to have ALREADY arrived (silent no-op
+// if you typed fast). Now it fetches suggestions itself when the list is empty.
+async function addLocation(){
+  if(suggList.length){pickSugg(0);return;}
+  const q=$('searchInput').value.trim(); if(q.length<2) return;
+  $('searchGo').textContent='…';
+  try{suggList=await suggest(q);}catch(e){suggList=[];}
+  $('searchGo').textContent='Add';
+  if(suggList.length)pickSugg(0); else renderSugg();
+}
 $('searchGo').onclick=addLocation;
 $('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')addLocation();});
 $('btnRefresh').onclick=()=>{const L=S.locations.find(l=>l.id===S.sel);if(L)loadFor(L,true);};
