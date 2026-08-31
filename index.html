@@ -135,7 +135,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v1.4.0</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v1.5.0</div></div>
   <div class="offline" id="offlineBar" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
     <div id="locBtn"><h1>Skyward</h1><div class="loc" id="locName">— ▾</div></div>
@@ -157,10 +157,18 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
     <div class="sugg" id="suggBox"></div>
     <div class="loclist" id="locList"></div>
   </div>
+  <div class="sheet" id="diag" hidden>
+    <div class="sheet-head"><span>Diagnostics</span><button class="icon-btn" id="diagClose">✕</button></div>
+    <div style="display:flex;gap:8px;padding:0 18px 10px">
+      <button id="diagRun" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:14px;cursor:pointer">Run checks</button>
+      <button id="diagCopy" style="flex:1;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;cursor:pointer">Copy report</button>
+    </div>
+    <pre id="diagOut" style="flex:1;overflow:auto;margin:0 18px 18px;padding:14px;background:rgba(0,0,0,.35);border-radius:12px;font-size:11.5px;line-height:1.55;white-space:pre-wrap;font-family:ui-monospace,monospace;color:#C9DDF2">Tap “Run checks”, then “Copy report” and paste it to Claude.</pre>
+  </div>
 </div>
 
 <script>
-const VERSION='1.4.0';
+const VERSION='1.5.0';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -469,7 +477,59 @@ setInterval(()=>{const L=S.locations.find(l=>l.id===S.sel);if(L&&L.lat!=null)loa
 document.addEventListener('visibilitychange',()=>{                                                // refresh stale data on reopen
   if(!document.hidden&&S.wx&&Date.now()-S.wx.updated>6e5){const L=S.locations.find(l=>l.id===S.sel);if(L)loadFor(L);}});
 
-/* ================= PWA install + service worker ================= */
+/* ================= ON-DEVICE DIAGNOSTICS ================= */
+// Open by tapping the version line in the Now tab footer.
+document.addEventListener('click',e=>{if(e.target.closest('.note')){$('diag').hidden=false;}});
+$('diagClose').onclick=()=>$('diag').hidden=true;
+$('diagCopy').onclick=async()=>{
+  const t=$('diagOut').textContent;
+  try{await navigator.clipboard.writeText(t);$('diagCopy').textContent='Copied ✓';}
+  catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();$('diagCopy').textContent='Copied ✓';}
+  setTimeout(()=>$('diagCopy').textContent='Copy report',1500);
+};
+async function timed(fn){const t0=performance.now();const v=await fn();return[Math.round(performance.now()-t0),v];}
+$('diagRun').onclick=async()=>{
+  const out=[];const P=s=>{out.push(s);$('diagOut').textContent=out.join('\n');};
+  const L=S.locations.find(l=>l.id===S.sel&&l.lat!=null)||{lat:41.8781,lon:-87.6298,name:'Chicago(fallback)'};
+  P(`SKYWARD DIAGNOSTICS v${VERSION} — ${new Date().toISOString()}`);
+  P(`device: ${navigator.userAgent.slice(0,80)}`);
+  P(`viewport: ${window.innerWidth}×${window.innerHeight} · cover-mode: ${window.innerWidth<380} · online: ${navigator.onLine}`);
+  P(`selected: ${L.name} (${L.lat.toFixed(3)},${L.lon.toFixed(3)}) · saved locations: ${S.locations.length}`);
+  P(`weather age: ${S.wx?Math.round((Date.now()-S.wx.updated)/6e4)+' min':'no data'} · alerts: ${Array.isArray(S.alerts)?S.alerts.length:'—'}`);
+  // service worker
+  try{const reg=await navigator.serviceWorker.getRegistration();
+    P(`sw: ${navigator.serviceWorker.controller?'✓ controlling':'✗ not controlling'} · ${reg?.active?new URL(reg.active.scriptURL).search||'(no ?v)':'none'}`);
+  }catch(e){P('sw: ✗ '+e.message);}
+  // geolocation permission
+  try{const st=await navigator.permissions.query({name:'geolocation'});P(`geolocation permission: ${st.state==='granted'?'✓':'✗'} ${st.state}`);}
+  catch(e){P('geolocation permission: ? unsupported');}
+  // API probes
+  try{const[ms,r]=await timed(()=>fetch(`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m`));
+    P(`open-meteo: ${r.ok?'✓':'✗'} ${r.status} · ${ms}ms`);}catch(e){P('open-meteo: ✗ '+e.message);}
+  try{const[ms,r]=await timed(()=>suggest('Denver'));P(`geocoding: ${r.length?'✓':'✗'} ${r.length} results · ${ms}ms`);}catch(e){P('geocoding: ✗ '+e.message);}
+  try{const[ms,r]=await timed(()=>fetch(`https://api.weather.gov/alerts/active?point=${L.lat.toFixed(4)},${L.lon.toFixed(4)}`,{headers:{Accept:'application/geo+json'}}));
+    P(`noaa alerts: ${r.ok?'✓':'✗'} ${r.status} · ${ms}ms`);}catch(e){P('noaa alerts: ✗ '+e.message);}
+  // radar freshness — catches the stale-metadata bug
+  try{const[ms,meta]=await timed(async()=>(await fetch('https://api.rainviewer.com/public/weather-maps.json')).json());
+    const past=meta.radar?.past||[];const newest=past.length?past[past.length-1].time:0;
+    const age=newest?Math.round((Date.now()/1000-newest)/60):-1;
+    P(`rainviewer meta: ${past.length?'✓':'✗'} ${past.length} past frames · newest ${age} min old ${age>25?'✗ STALE':'✓'} · ${ms}ms`);
+    if(past.length){const f=past[past.length-1];const{xf,yf}=mercator(L.lat,L.lon,7);
+      const[tms,tr]=await timed(()=>fetch(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
+      P(`radar tile: ${tr.ok?'✓':'✗'} ${tr.status} · ${tms}ms`);}
+  }catch(e){P('rainviewer: ✗ '+e.message);}
+  try{const{xf,yf}=mercator(L.lat,L.lon,7);
+    const[ms,r]=await timed(()=>fetch(`https://basemaps.cartocdn.com/dark_all/7/${Math.floor(xf)}/${Math.floor(yf)}.png`));
+    P(`basemap tile: ${r.ok?'✓':'✗'} ${r.status} · ${ms}ms`);}catch(e){P('basemap: ✗ '+e.message);}
+  // app radar state
+  P(`radar state: ready=${S.radar.ready} · frames=${S.radar.frames.length} · fail='${S.radar.fail}'`);
+  // caches
+  try{const ks=(await caches.keys()).filter(k=>k.startsWith('skyward'));
+    for(const k of ks){const n=(await (await caches.open(k)).keys()).length;P(`cache ${k}: ${n} entries`);}
+    if(!ks.length)P('caches: ✗ none (service worker not installed?)');
+  }catch(e){P('caches: ✗ '+e.message);}
+  P('— end of report —');
+};
 // BUG FIX: cover state was computed once at load, so flipping the phone
 // mid-session never re-rendered. Now it tracks resize/flip transitions live.
 function coverCheck(){
