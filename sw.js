@@ -1,4 +1,4 @@
-const VERSION     = '1.5.0';
+const VERSION     = '2.0.1';
 const SHELL_CACHE = 'skyward-shell-' + VERSION;
 const DATA_CACHE  = 'skyward-data-'  + VERSION;
 const TILE_CACHE  = 'skyward-tiles-' + VERSION;

@@ -32,40 +32,6 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 .locrow .del{background:none;border:none;color:#7E9CBE;font-size:14px;padding:6px 8px;cursor:pointer;flex-shrink:0}
 .locrow .del:active{color:var(--alert)}
 /* Cover display mode: <380px wide (3.4" screen) */
-@media(max-width:379px){
-  #app{max-width:100%;padding-top:max(env(safe-area-inset-top),8px)}
-  .head{padding:8px 10px 4px;display:flex;flex-direction:column;gap:2px}
-  .head h1{font-size:14px}
-  .head .loc{font-size:11px}
-  .hbtns{gap:6px}
-  .icon-btn{width:30px;height:30px;font-size:13px}
-  #alertSlot{display:none!important}
-  .sheet-head{padding:10px 12px 6px;font-size:14px}
-  .locrow{padding:9px 8px}
-  .locrow .nm b{font-size:13px}
-  .body{padding:6px}
-  .hero{padding:8px 10px 6px}
-  .hero .ic{font-size:40px}
-  .hero .big{font-size:56px;letter-spacing:-.02em}
-  .hero .cond{font-size:13px;margin-top:2px}
-  .hero .feels{font-size:11px}
-  .grid{grid-template-columns:1fr 1fr;gap:6px;padding:6px 10px}
-  .card{padding:8px 10px}
-  .card .k{font-size:9px}
-  .card .v{font-size:14px}
-  .sect{padding:8px 10px 4px;font-size:9px}
-  .hstrip{padding:2px 10px 8px;gap:6px}
-  .hcell{min-width:48px;padding:7px 8px}
-  .hcell .t{font-size:9px}
-  .hcell .i{font-size:18px;margin:2px 0}
-  .hcell .d{font-size:13px}
-  .hcell .p{font-size:9px}
-  .day{grid-template-columns:40px 24px 28px 1fr 28px;gap:6px;padding:7px 10px;font-size:12px}
-  .day .lo{font-size:11px}
-  .day .pp{font-size:9px}
-  .tabs{display:none}
-  .note{font-size:10px;padding:6px 10px}
-}
 .head{padding:14px 18px 6px;display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0}
 .head h1{font-size:17px;font-weight:600;letter-spacing:.01em}
 .head .loc{font-size:13px;color:var(--dim2);margin-top:2px}
@@ -131,11 +97,84 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 .spin{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 .offline{background:rgba(242,193,78,.15);color:#F2C14E;font-size:11.5px;text-align:center;padding:5px;flex-shrink:0}
+/* Cover display (Z Flip 6 front screen, ~277px). Placed LAST: media queries add no
+   specificity, so these must come after the base rules to actually win. */
+@media(max-width:339px){
+  #app{max-width:100%;padding-top:max(env(safe-area-inset-top),8px)}
+  .head{padding:8px 10px 4px;display:flex;flex-direction:column;gap:2px}
+  .head h1{font-size:14px}
+  .head .loc{font-size:11px}
+  .hbtns{gap:6px}
+  .icon-btn{width:30px;height:30px;font-size:13px}
+  #alertSlot{display:none!important}
+  .sheet-head{padding:10px 12px 6px;font-size:14px}
+  .locrow{padding:9px 8px}
+  .locrow .nm b{font-size:13px}
+  .body{padding:6px}
+  .hero{padding:8px 10px 6px}
+  .hero .ic{font-size:40px}
+  .hero .big{font-size:56px;letter-spacing:-.02em}
+  .hero .cond{font-size:13px;margin-top:2px}
+  .hero .feels{font-size:11px}
+  .grid{grid-template-columns:1fr 1fr;gap:6px;padding:6px 10px}
+  .card{padding:8px 10px}
+  .card .k{font-size:9px}
+  .card .v{font-size:14px}
+  .sect{padding:8px 10px 4px;font-size:9px}
+  .hstrip{padding:2px 10px 8px;gap:6px}
+  .hcell{min-width:48px;padding:7px 8px}
+  .hcell .t{font-size:9px}
+  .hcell .i{font-size:18px;margin:2px 0}
+  .hcell .d{font-size:13px}
+  .hcell .p{font-size:9px}
+  .day{grid-template-columns:40px 24px 28px 1fr 28px;gap:6px;padding:7px 10px;font-size:12px}
+  .day .lo{font-size:11px}
+  .day .pp{font-size:9px}
+  .tabs{display:none}
+  .note{font-size:10px;padding:6px 10px}
+}
+
+/* Wide layouts. Placed LAST in the stylesheet so these overrides actually win.
+   Fold 8 inner display measures 816x616 CSS px (DPR 3) — LANDSCAPE, only ~540px usable height.
+   600-779px: tablets/portrait — 2 columns, radar full-width below, height-capped.
+   780px+:    Fold 8 (816) & Fold 8 Ultra (~835) inner — 3 columns: Now | Hourly+10-day | Radar. */
+@media(min-width:600px){
+  #app{max-width:100%}
+  .head{padding:14px 22px 6px}
+  .head h1{font-size:19px}
+  .icon-btn{width:38px;height:38px;font-size:16px}
+  .body{padding:0 8px 12px}
+  .dash{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}
+  .col{min-width:0}
+  .dash .col:nth-child(3){grid-column:1/-1}
+  .tabs{display:none}
+  .hstrip{flex-wrap:wrap;row-gap:8px}
+  .radarbox{width:min(100%,58vh);margin:6px auto 8px}
+  .sheet{max-width:560px;left:50%;transform:translateX(-50%)}
+  .alert{margin:2px 22px 6px}
+}
+@media(min-width:780px){
+  .dash{grid-template-columns:1.05fr 1.15fr 1fr;gap:8px}
+  .dash .col:nth-child(3){grid-column:auto}
+  .hero{padding:6px 14px 4px}
+  .hero .ic{font-size:44px}
+  .hero .big{font-size:78px}
+  .hero .cond{font-size:16px}
+  .hero .feels{font-size:12.5px}
+  .grid{gap:7px;padding:6px 14px}
+  .card{padding:9px 12px}
+  .card .v{font-size:17px}
+  .sect{padding:8px 14px 4px}
+  .hcell{min-width:54px;padding:8px 9px}
+  .day{padding:7px 14px;font-size:13.5px}
+  .radarbox{width:100%;margin:6px 6px 8px}
+  .note{padding:4px 14px}
+}
 </style>
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v1.5.0</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v2.0.1</div></div>
   <div class="offline" id="offlineBar" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
     <div id="locBtn"><h1>Skyward</h1><div class="loc" id="locName">— ▾</div></div>
@@ -168,7 +207,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </div>
 
 <script>
-const VERSION='1.5.0';
+const VERSION='2.0.1';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -192,7 +231,7 @@ const cset=(k,v,ttl)=>mem.set(k,{v,exp:Date.now()+ttl});
 /* ================= STATE ================= */
 const S={
   locations:store.get('locs',[{id:'here',name:'My Location',lat:null,lon:null,isGPS:true}]),
-  sel:'here',tab:'now',wx:null,alerts:[],
+  sel:'here',tab:'now',wx:null,alerts:[],wide:false,
   radar:{frames:[],idx:0,playing:true,tiles:{},base:[],ready:false,fail:'',z:7}
 };
 const $=id=>document.getElementById(id);
@@ -294,57 +333,81 @@ const fmtH=t=>new Date(t).toLocaleTimeString([],{hour:'numeric'});
 const fmtD=t=>new Date(t+'T12:00').toLocaleDateString([],{weekday:'short'});
 const fmtSun=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 
+/* --- section builders (composable so wide layouts can show several at once) --- */
+function secNow(wx,hours){
+  const c=wx.current;
+  return `
+    <div class="hero"><div class="ic">${c.c.icon}</div><div class="big">${c.temp}°</div>
+      <div class="cond">${c.c.text}</div>
+      <div class="feels">Feels like ${c.feels}° · H:${wx.daily[0].hi}° L:${wx.daily[0].lo}°</div></div>
+    <div class="grid">
+      <div class="card"><div class="k">Wind</div><div class="v">${c.wind} mph</div></div>
+      <div class="card"><div class="k">Humidity</div><div class="v">${c.hum}%</div></div>
+      <div class="card"><div class="k">UV index</div><div class="v">${(+c.uv).toFixed(1)}</div><div class="s">${c.uv<3?'Low':c.uv<6?'Moderate':c.uv<8?'High':'Very high'}</div></div>
+      <div class="card"><div class="k">Sun</div><div class="v" style="font-size:14px">↑ ${fmtSun(wx.sunrise)}<br>↓ ${fmtSun(wx.sunset)}</div></div>
+    </div>
+    <div class="sect">Next hours</div>
+    <div class="hstrip">${wx.hourly.slice(0,hours||12).map(hcell).join('')}</div>`;
+}
+const hcell=h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i">${h.c.icon}</div><div class="d">${h.temp}°</div><div class="p">${h.p>5?h.p+'%':''}</div></div>`;
+function secHourly(wx,wrap){
+  return `<div class="sect">24-hour forecast</div>
+    <div class="hstrip"${wrap?' style="flex-wrap:wrap;row-gap:9px"':''}>${wx.hourly.map(hcell).join('')}</div>`;
+}
+function secDaily(wx){
+  const mn=Math.min(...wx.daily.map(d=>d.lo)),mx=Math.max(...wx.daily.map(d=>d.hi)),rng=Math.max(1,mx-mn);
+  return `<div class="sect">10-day forecast</div>`+wx.daily.map((d,i)=>`
+    <div class="day"><div>${i===0?'Today':fmtD(d.t)}${d.p>20?`<div class="pp">${d.p}%</div>`:''}</div><div>${d.c.icon}</div>
+    <div class="lo">${d.lo}°</div>
+    <div class="tbar"><i style="left:${(d.lo-mn)/rng*100}%;width:${Math.max(4,(d.hi-d.lo)/rng*100)}%"></i></div>
+    <div class="hi">${d.hi}°</div></div>`).join('');
+}
+function secRadar(){
+  const R=S.radar;
+  return `<div class="sect">Precipitation radar</div>
+    <div class="radarbox">
+      ${R.ready?`<canvas id="rcv" width="512" height="512"></canvas>
+      <div class="rhud"><button id="rpl">${R.playing?'⏸':'▶'}</button>
+      <input type="range" id="rsl" min="0" max="${R.frames.length-1}" value="${R.idx}">
+      <div class="ts" id="rts"></div></div>`
+      :`<div class="rstatus">${R.fail?'Radar unavailable: '+R.fail+'<br><small>Retrying on next refresh</small>':'Loading radar tiles…'}</div>`}
+    </div>
+    ${R.ready?`<div class="legend">light <i style="background:#7fd4ff"></i><i style="background:#4a90d9"></i><i style="background:#5cdb95"></i><i style="background:#f2c14e"></i><i style="background:#e4572e"></i><i style="background:#b03be4"></i> heavy</div>`:''}`;
+}
+function wireRadar(){
+  const R=S.radar; if(!R.ready||!$('rcv')) return;
+  drawRadar();
+  $('rpl').onclick=()=>{R.playing=!R.playing;$('rpl').textContent=R.playing?'⏸':'▶';};
+  $('rsl').oninput=e=>{R.playing=false;$('rpl').textContent='▶';R.idx=+e.target.value;drawRadar();};
+}
+const footer=wx=>`<div class="note">Updated ${new Date(wx.updated).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}${wx.fromCache?' · cached':''} · v${VERSION}</div>`;
+
 function render(){
   const wx=S.wx; if(!wx) return;
   $('locName').textContent='📍 '+wx.location+' ▾';
   $('alertSlot').innerHTML=S.alerts.length?`<div class="alert"><b>⚠ ${S.alerts[0].event}</b>${(S.alerts[0].head||'').slice(0,120)}</div>`:'';
+  const B=$('body');
+
+  // WIDE (Fold inner display, ~600px+): no tabs — everything visible at once in two columns
+  if(S.wide){
+    $('tabs').innerHTML='';
+    B.innerHTML=`<div class="dash">
+        <div class="col">${secNow(wx,12)}${footer(wx)}</div>
+        <div class="col">${secHourly(wx,true)}${secDaily(wx)}</div>
+        <div class="col">${secRadar()}</div>
+      </div>`;
+    wireRadar();
+    return;
+  }
+
   $('tabs').innerHTML=[['now','🌡️','Now'],['hourly','🕐','Hourly'],['daily','📅','10-Day'],['radar','🛰️','Radar']]
     .map(([id,ic,lb])=>`<button class="${S.tab===id?'on':''}" data-t="${id}"><span class="ic">${ic}</span>${lb}</button>`).join('');
   $('tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render();});
 
-  const B=$('body'),c=wx.current;
-  if(S.tab==='now'){
-    B.innerHTML=`
-      <div class="hero"><div class="ic">${c.c.icon}</div><div class="big">${c.temp}°</div>
-        <div class="cond">${c.c.text}</div>
-        <div class="feels">Feels like ${c.feels}° · H:${wx.daily[0].hi}° L:${wx.daily[0].lo}°</div></div>
-      <div class="grid">
-        <div class="card"><div class="k">Wind</div><div class="v">${c.wind} mph</div></div>
-        <div class="card"><div class="k">Humidity</div><div class="v">${c.hum}%</div></div>
-        <div class="card"><div class="k">UV index</div><div class="v">${(+c.uv).toFixed(1)}</div><div class="s">${c.uv<3?'Low':c.uv<6?'Moderate':c.uv<8?'High':'Very high'}</div></div>
-        <div class="card"><div class="k">Sun</div><div class="v" style="font-size:14px">↑ ${fmtSun(wx.sunrise)}<br>↓ ${fmtSun(wx.sunset)}</div></div>
-      </div>
-      <div class="sect">Next hours</div>
-      <div class="hstrip">${wx.hourly.slice(0,12).map(h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i">${h.c.icon}</div><div class="d">${h.temp}°</div><div class="p">${h.p>5?h.p+'%':''}</div></div>`).join('')}</div>
-      <div class="note">Updated ${new Date(wx.updated).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}${wx.fromCache?' · cached':''} · v${VERSION}</div>`;
-  }
-  else if(S.tab==='hourly'){
-    B.innerHTML=`<div class="sect">24-hour forecast</div>
-      <div class="hstrip" style="flex-wrap:wrap;row-gap:9px">${wx.hourly.map(h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i">${h.c.icon}</div><div class="d">${h.temp}°</div><div class="p">${h.p>5?h.p+'%':''}</div></div>`).join('')}</div>`;
-  }
-  else if(S.tab==='daily'){
-    const mn=Math.min(...wx.daily.map(d=>d.lo)),mx=Math.max(...wx.daily.map(d=>d.hi)),rng=Math.max(1,mx-mn);
-    B.innerHTML=`<div class="sect">10-day forecast</div>`+wx.daily.map((d,i)=>`
-      <div class="day"><div>${i===0?'Today':fmtD(d.t)}${d.p>20?`<div class="pp">${d.p}%</div>`:''}</div><div>${d.c.icon}</div>
-      <div class="lo">${d.lo}°</div>
-      <div class="tbar"><i style="left:${(d.lo-mn)/rng*100}%;width:${Math.max(4,(d.hi-d.lo)/rng*100)}%"></i></div>
-      <div class="hi">${d.hi}°</div></div>`).join('');
-  }
-  else if(S.tab==='radar'){
-    const R=S.radar;
-    B.innerHTML=`<div class="sect">Precipitation radar</div>
-      <div class="radarbox">
-        ${R.ready?`<canvas id="rcv" width="512" height="512"></canvas>
-        <div class="rhud"><button id="rpl">${R.playing?'⏸':'▶'}</button>
-        <input type="range" id="rsl" min="0" max="${R.frames.length-1}" value="${R.idx}">
-        <div class="ts" id="rts"></div></div>`
-        :`<div class="rstatus">${R.fail?'Radar unavailable: '+R.fail+'<br><small>Retrying on next refresh</small>':'Loading radar tiles…'}</div>`}
-      </div>
-      ${R.ready?`<div class="legend">light <i style="background:#7fd4ff"></i><i style="background:#4a90d9"></i><i style="background:#5cdb95"></i><i style="background:#f2c14e"></i><i style="background:#e4572e"></i><i style="background:#b03be4"></i> heavy</div>`:''}`;
-    if(R.ready){drawRadar();
-      $('rpl').onclick=()=>{R.playing=!R.playing;$('rpl').textContent=R.playing?'⏸':'▶';};
-      $('rsl').oninput=e=>{R.playing=false;$('rpl').textContent='▶';R.idx=+e.target.value;drawRadar();};}
-  }
+  if(S.tab==='now')         B.innerHTML=secNow(wx,12)+footer(wx);
+  else if(S.tab==='hourly') B.innerHTML=secHourly(wx,true);
+  else if(S.tab==='daily')  B.innerHTML=secDaily(wx);
+  else if(S.tab==='radar'){ B.innerHTML=secRadar(); wireRadar(); }
 }
 
 /* ================= FLOW ================= */
@@ -493,7 +556,9 @@ $('diagRun').onclick=async()=>{
   const L=S.locations.find(l=>l.id===S.sel&&l.lat!=null)||{lat:41.8781,lon:-87.6298,name:'Chicago(fallback)'};
   P(`SKYWARD DIAGNOSTICS v${VERSION} — ${new Date().toISOString()}`);
   P(`device: ${navigator.userAgent.slice(0,80)}`);
-  P(`viewport: ${window.innerWidth}×${window.innerHeight} · cover-mode: ${window.innerWidth<380} · online: ${navigator.onLine}`);
+  const tabsHidden=getComputedStyle($('tabs')).display==='none';
+  const mode=window.innerWidth<340?'compact(flip-cover)':window.innerWidth>=600?'wide(fold-inner)':'phone';
+  P(`viewport: ${window.innerWidth}×${window.innerHeight} · dpr ${window.devicePixelRatio} · layout: ${mode} · S.wide=${S.wide} · dash-css-applied: ${!!document.querySelector('.dash')&&getComputedStyle(document.querySelector('.dash')).display==='grid'} · tabs-hidden: ${tabsHidden} · online: ${navigator.onLine}`);
   P(`selected: ${L.name} (${L.lat.toFixed(3)},${L.lon.toFixed(3)}) · saved locations: ${S.locations.length}`);
   P(`weather age: ${S.wx?Math.round((Date.now()-S.wx.updated)/6e4)+' min':'no data'} · alerts: ${Array.isArray(S.alerts)?S.alerts.length:'—'}`);
   // service worker
@@ -532,13 +597,20 @@ $('diagRun').onclick=async()=>{
 };
 // BUG FIX: cover state was computed once at load, so flipping the phone
 // mid-session never re-rendered. Now it tracks resize/flip transitions live.
-function coverCheck(){
-  const cover=window.innerWidth<380;
-  if(cover&&S.tab!=='now'){S.tab='now';render();}   // cover locks to Now view (tabs are hidden there)
-  return cover;
+// Three layouts, driven purely by width so it survives any device:
+//   <340px  compact  — Flip cover screen (~277px)
+//   340-599 phone    — Flip main (360), Fold 8 cover (~416), normal phones
+//   >=600px wide     — Fold 8 inner display (~600-700px): two-column dashboard
+function layoutCheck(){
+  const w=window.innerWidth, cover=w<340, wide=w>=600;
+  const changed=(wide!==S.wide);
+  S.wide=wide;
+  if(cover&&S.tab!=='now')S.tab='now';            // compact locks to Now (tabs hidden)
+  if(changed||cover){ if(S.wx)render(); }         // re-render across a fold/unfold transition
+  return {cover,wide};
 }
-coverCheck();
-let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(coverCheck,150);});
+layoutCheck();
+let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(layoutCheck,150);});
 
 if('serviceWorker' in navigator){
   // ?v= forces the browser to fetch the new worker whenever the version bumps,
