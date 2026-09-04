@@ -96,10 +96,12 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 .loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(175deg,var(--bg1),var(--bg2));z-index:30;font-size:14px;color:#A9C4E2}
 .spin{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+@keyframes slideL{from{transform:translateX(28px);opacity:.35}}
+@keyframes slideR{from{transform:translateX(-28px);opacity:.35}}
 .offline{background:rgba(242,193,78,.15);color:#F2C14E;font-size:11.5px;text-align:center;padding:5px;flex-shrink:0}
 /* Cover display (Z Flip 6 front screen, ~277px). Placed LAST: media queries add no
    specificity, so these must come after the base rules to actually win. */
-@media(max-width:339px){
+@media(max-width:339px) and (max-height:419px){
   #app{max-width:100%;padding-top:max(env(safe-area-inset-top),8px)}
   .head{padding:8px 10px 4px;display:flex;flex-direction:column;gap:2px}
   .head h1{font-size:14px}
@@ -135,10 +137,10 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 }
 
 /* Wide layouts. Placed LAST in the stylesheet so these overrides actually win.
-   Fold 8 inner display measures 816x616 CSS px (DPR 3) — LANDSCAPE, only ~540px usable height.
+   Fold 8 inner display MEASURED on device: 932x616 CSS px (DPR 2.625) — LANDSCAPE, ~540px usable height.
    600-779px: tablets/portrait — 2 columns, radar full-width below, height-capped.
-   780px+:    Fold 8 (816) & Fold 8 Ultra (~835) inner — 3 columns: Now | Hourly+10-day | Radar. */
-@media(min-width:600px){
+   780px+:    Fold 8 (932 measured) & Fold 8 Ultra inner — 3 columns: Now | Hourly+10-day | Radar. */
+@media(min-width:600px) and (min-height:500px){
   #app{max-width:100%}
   .head{padding:14px 22px 6px}
   .head h1{font-size:19px}
@@ -153,7 +155,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
   .sheet{max-width:560px;left:50%;transform:translateX(-50%)}
   .alert{margin:2px 22px 6px}
 }
-@media(min-width:780px){
+@media(min-width:780px) and (min-height:500px){
   .dash{grid-template-columns:1.05fr 1.15fr 1fr;gap:8px}
   .dash .col:nth-child(3){grid-column:auto}
   .hero{padding:6px 14px 4px}
@@ -174,7 +176,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v2.0.1</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v2.2.0</div></div>
   <div class="offline" id="offlineBar" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
     <div id="locBtn"><h1>Skyward</h1><div class="loc" id="locName">— ▾</div></div>
@@ -207,7 +209,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </div>
 
 <script>
-const VERSION='2.0.1';
+const VERSION='2.2.0';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -308,7 +310,7 @@ async function loadRadar(lat,lon){
     if(!withTiles.length) throw new Error('tiles blocked');
     R.frames=withTiles; R.idx=Math.max(0,R.frames.length-4); R.ready=true;
   }catch(e){if(tok!==radarToken)return;R.fail=e.message||'unavailable';}
-  if(S.tab==='radar')render();
+  if(radarOnScreen())render();   // BUG FIX: dashboard layout has no tabs, so it never refreshed after load
 }
 function drawRadar(){
   const cv=$('rcv'); if(!cv) return;
@@ -326,7 +328,8 @@ function drawRadar(){
     ts.textContent=new Date(f.time*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+(isFc?' · forecast':'');}
   const sl=$('rsl'); if(sl) sl.value=R.idx;
 }
-setInterval(()=>{if(S.radar.playing&&S.radar.ready&&S.tab==='radar'){S.radar.idx=(S.radar.idx+1)%S.radar.frames.length;drawRadar();}},700);
+const radarOnScreen=()=>S.tab==='radar'||S.wide;
+setInterval(()=>{if(S.radar.playing&&S.radar.ready&&radarOnScreen()){S.radar.idx=(S.radar.idx+1)%S.radar.frames.length;drawRadar();}},700);
 
 /* ================= RENDER ================= */
 const fmtH=t=>new Date(t).toLocaleTimeString([],{hour:'numeric'});
@@ -528,8 +531,10 @@ function boot(){
     navigator.geolocation.getCurrentPosition(async p=>{
       if(done)return;done=true;
       let nm='My Location';
-      try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json&zoom=10`);
-        const j=await r.json();nm=j.address?.city||j.address?.town||j.address?.village||j.address?.county||nm;}catch(e){}
+      try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json&zoom=14`);
+        const a=(await r.json()).address||{};
+        // unincorporated areas have no "city" — try local names before falling back to county
+        nm=a.city||a.town||a.village||a.hamlet||a.suburb||a.locality||a.municipality||a.county||nm;}catch(e){}
       go(p.coords.latitude,p.coords.longitude,nm);
     },fallback,{timeout:8000,maximumAge:3e5});
     setTimeout(fallback,8500);
@@ -539,6 +544,29 @@ boot();
 setInterval(()=>{const L=S.locations.find(l=>l.id===S.sel);if(L&&L.lat!=null)loadFor(L);},6e5);   // 10-min auto refresh
 document.addEventListener('visibilitychange',()=>{                                                // refresh stale data on reopen
   if(!document.hidden&&S.wx&&Date.now()-S.wx.updated>6e5){const L=S.locations.find(l=>l.id===S.sel);if(L)loadFor(L);}});
+
+/* ================= SWIPE NAVIGATION (phone layout) ================= */
+const TABS=['now','hourly','daily','radar'];
+const tabsVisible=()=>!S.wide&&getComputedStyle($('tabs')).display!=='none';
+let swX=0,swY=0,swOn=false;
+$('body').addEventListener('touchstart',e=>{
+  swOn=false;
+  if(!tabsVisible()) return;
+  // don't hijack things that scroll or scrub horizontally themselves
+  const strip=e.target.closest('.hstrip');
+  if(strip&&strip.scrollWidth>strip.clientWidth+4) return;
+  if(e.target.closest('.radarbox,input,.sugg')) return;
+  const t=e.touches[0];swX=t.clientX;swY=t.clientY;swOn=true;
+},{passive:true});
+$('body').addEventListener('touchend',e=>{
+  if(!swOn) return; swOn=false;
+  const t=e.changedTouches[0],dx=t.clientX-swX,dy=t.clientY-swY;
+  if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.5) return;   // must be a clear horizontal swipe
+  const i=TABS.indexOf(S.tab),n=i+(dx<0?1:-1);
+  if(n<0||n>=TABS.length) return;
+  S.tab=TABS[n];render();
+  const B=$('body');B.style.animation='none';void B.offsetHeight;B.style.animation=`slide${dx<0?'L':'R'} .22s ease`;
+},{passive:true});
 
 /* ================= ON-DEVICE DIAGNOSTICS ================= */
 // Open by tapping the version line in the Now tab footer.
@@ -557,7 +585,7 @@ $('diagRun').onclick=async()=>{
   P(`SKYWARD DIAGNOSTICS v${VERSION} — ${new Date().toISOString()}`);
   P(`device: ${navigator.userAgent.slice(0,80)}`);
   const tabsHidden=getComputedStyle($('tabs')).display==='none';
-  const mode=window.innerWidth<340?'compact(flip-cover)':window.innerWidth>=600?'wide(fold-inner)':'phone';
+  const mode=(window.innerWidth<340&&window.innerHeight<420)?'compact(flip-cover)':(window.innerWidth>=600&&window.innerHeight>=500)?'wide(fold-inner)':'phone';
   P(`viewport: ${window.innerWidth}×${window.innerHeight} · dpr ${window.devicePixelRatio} · layout: ${mode} · S.wide=${S.wide} · dash-css-applied: ${!!document.querySelector('.dash')&&getComputedStyle(document.querySelector('.dash')).display==='grid'} · tabs-hidden: ${tabsHidden} · online: ${navigator.onLine}`);
   P(`selected: ${L.name} (${L.lat.toFixed(3)},${L.lon.toFixed(3)}) · saved locations: ${S.locations.length}`);
   P(`weather age: ${S.wx?Math.round((Date.now()-S.wx.updated)/6e4)+' min':'no data'} · alerts: ${Array.isArray(S.alerts)?S.alerts.length:'—'}`);
@@ -581,7 +609,12 @@ $('diagRun').onclick=async()=>{
     P(`rainviewer meta: ${past.length?'✓':'✗'} ${past.length} past frames · newest ${age} min old ${age>25?'✗ STALE':'✓'} · ${ms}ms`);
     if(past.length){const f=past[past.length-1];const{xf,yf}=mercator(L.lat,L.lon,7);
       const[tms,tr]=await timed(()=>fetch(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
-      P(`radar tile: ${tr.ok?'✓':'✗'} ${tr.status} · ${tms}ms`);}
+      P(`radar tile (past): ${tr.ok?'✓':'✗'} ${tr.status} · ${tms}ms`);}
+    const nc=meta.radar?.nowcast||[];
+    if(nc.length){const f=nc[0];const{xf,yf}=mercator(L.lat,L.lon,7);
+      const[nms,nr]=await timed(()=>fetch(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
+      P(`radar tile (nowcast): ${nr.ok?'✓':'✗'} ${nr.status} · ${nms}ms · path=${f.path.slice(0,40)}`);}
+    else P('radar nowcast: ✗ no nowcast frames in metadata');
   }catch(e){P('rainviewer: ✗ '+e.message);}
   try{const{xf,yf}=mercator(L.lat,L.lon,7);
     const[ms,r]=await timed(()=>fetch(`https://basemaps.cartocdn.com/dark_all/7/${Math.floor(xf)}/${Math.floor(yf)}.png`));
@@ -599,10 +632,14 @@ $('diagRun').onclick=async()=>{
 // mid-session never re-rendered. Now it tracks resize/flip transitions live.
 // Three layouts, driven purely by width so it survives any device:
 //   <340px  compact  — Flip cover screen (~277px)
-//   340-599 phone    — Flip main (360), Fold 8 cover (~416), normal phones
-//   >=600px wide     — Fold 8 inner display (~600-700px): two-column dashboard
+//   340-599 phone    — Flip main (360), Fold 8 cover (~475 @ dpr 2.625), normal phones
+//   >=600px wide     — Fold 8 inner display (measured 932x616 @ dpr 2.625): dashboard
 function layoutCheck(){
-  const w=window.innerWidth, cover=w<340, wide=w>=600;
+  const w=window.innerWidth, hgt=window.innerHeight;
+  // compact = narrow AND short (Flip cover is ~277x288, near-square); a 320px-wide phone is tall, so it stays in phone layout
+  const cover=w<340&&hgt<420;
+  // wide = wide AND tall enough (Fold inner is 816x616); a phone in landscape (~800x360) stays in phone layout
+  const wide=w>=600&&hgt>=500;
   const changed=(wide!==S.wide);
   S.wide=wide;
   if(cover&&S.tab!=='now')S.tab='now';            // compact locks to Now (tabs hidden)
