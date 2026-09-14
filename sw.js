@@ -1,4 +1,4 @@
-const VERSION = '2.3.0';
+const VERSION = '2.3.1';
 const SHELL_CACHE = 'skyward-shell-' + VERSION;
 const TILE_CACHE = 'skyward-tiles-' + VERSION;
 const SHELL = ['./', './index.html', './reliability.js', './manifest.json', './icon-192.png', './icon-512.png'];
@@ -24,7 +24,7 @@ self.addEventListener('fetch', e => {
       .then(hit => hit || fetch(e.request)));
     return;
   }
-  const tileHost = ['cartocdn.com','rainviewer.com'].some(h => url.hostname === h || url.hostname.endsWith('.'+h));
+  const tileHost = ['rainviewer.com'].some(h => url.hostname === h || url.hostname.endsWith('.'+h));
   if (url.pathname.endsWith('.png') && tileHost) {
     // Register background work during dispatch so the worker stays alive for writes.
     let finish;
@@ -43,6 +43,7 @@ self.addEventListener('fetch', e => {
       } finally { finish(); }
     })());
   }
+  // OpenStreetMap tiles use the browser HTTP cache and provider cache headers.
   // APIs always use the network. The app owns forecast fallback and preserves
   // retrieval/valid times. Never disguise cached weather or alerts as fresh HTTP 200s.
 });
