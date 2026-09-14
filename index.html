@@ -179,7 +179,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v2.3.0</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v2.3.1</div></div>
   <div class="offline" id="offlineBar" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
     <div id="locBtn"><h1>Skyward</h1><div class="loc" id="locName">— ▾</div></div>
@@ -214,7 +214,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 
 <script src="reliability.js"></script>
 <script>
-const VERSION='2.3.0';
+const VERSION='2.3.1';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -289,7 +289,7 @@ async function suggest(q,signal){
 
 /* ================= RADAR ================= */
 async function bmp(url,signal){
-  const blob=await request(url,{signal,retries:0},r=>r.blob());
+  const blob=await request(url,{signal,retries:0,cache:'default'},r=>r.blob());
   if(typeof createImageBitmap==='function')return createImageBitmap(blob);
   return new Promise((resolve,reject)=>{
     const im=new Image(),src=URL.createObjectURL(blob);
@@ -309,7 +309,7 @@ function resetRadar(){
   S.radar={frames:[],idx:0,playing:S.radar.playing,tiles:{},base:[],ready:false,fail:'',z:7};
 }
 async function loadRadar(lat,lon){
-  resetRadar();
+  resetRadar();S.radar.loading=true;
   const tok=radarToken,controller=new AbortController();radarController=controller;
   let expired=false;const deadline=setTimeout(()=>{expired=true;controller.abort();},20000);
   // Every callback writes only into this request's private state.
@@ -326,9 +326,9 @@ async function loadRadar(lat,lon){
     for(let dx=0;dx<3;dx++)for(let dy=0;dy<3;dy++){
       const tx=tx0+dx,ty=ty0+dy,x=((tx%2**z)+2**z)%2**z;
       if(ty<0||ty>=2**z)continue;
-      jobs.push(async()=>R.base.push({im:await bmp(`https://basemaps.cartocdn.com/dark_all/${z}/${x}/${ty}.png`,controller.signal),tx,ty}));
+      jobs.push(async()=>R.base.push({im:await bmp(`https://tile.openstreetmap.org/${z}/${x}/${ty}.png`,controller.signal),tx,ty}));
       R.frames.forEach(f=>jobs.push(async()=>{
-        const im=await bmp(`${meta.host}${f.path}/256/${z}/${x}/${ty}/4/1_1.png`,controller.signal);
+        const im=await bmp(`${meta.host}${f.path}/256/${z}/${x}/${ty}/2/1_1.png`,controller.signal);
         (R.tiles[f.time]??=[]).push({im,tx,ty});
       }));
     }
@@ -344,11 +344,11 @@ async function loadRadar(lat,lon){
     if(!R.frames.length)throw new Error(expired?'Radar loading timed out':'Radar tiles could not be loaded');
     if(expired)R.failedTiles=(R.failedTiles||0)+1;
     const lastPast=R.frames.map(f=>!f.forecast).lastIndexOf(true);
-    R.idx=Math.max(0,lastPast);R.ready=true;
+    R.idx=Math.max(0,lastPast);R.ready=true;R.loading=false;
     S.radar=R;
   }catch(e){
     disposeRadar(R);if(tok!==radarToken)return;
-    S.radar.fail=expired?'Radar loading timed out':e.message||'Unavailable';record('radar',new Error(S.radar.fail));
+    S.radar.loading=false;S.radar.fail=expired?'Radar loading timed out':e.message||'Unavailable';record('radar',new Error(S.radar.fail));
   }finally{clearTimeout(deadline);}
   if(radarOnScreen())render();
 }
@@ -369,6 +369,10 @@ function drawRadar(){
   const sl=$('rsl'); if(sl) sl.value=R.idx;
 }
 const radarOnScreen=()=>S.tab==='radar'||S.wide;
+function ensureRadar(){
+  const L=S.locations.find(l=>l.id===S.sel);
+  if(!document.hidden&&radarOnScreen()&&hasCoordinates(L)&&!S.radar.ready&&!S.radar.loading&&!S.radar.fail)loadRadar(L.lat,L.lon);
+}
 setInterval(()=>{if(!document.hidden&&S.radar.playing&&S.radar.ready&&radarOnScreen()){S.radar.idx=(S.radar.idx+1)%S.radar.frames.length;drawRadar();}},700);
 
 /* ================= RENDER ================= */
@@ -414,6 +418,7 @@ function secRadar(){
   const R=S.radar;
   return `<div class="sect">Precipitation radar</div>
     <div class="radarbox">
+      <div style="position:absolute;top:0;right:0;z-index:1;background:rgba(255,255,255,.92);color:#172c40;padding:3px 5px;font-size:10px">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">OpenStreetMap contributors</a> · <a href="https://www.rainviewer.com/" target="_blank" rel="noopener" style="color:inherit">RainViewer</a></div>
       ${R.ready?`<canvas id="rcv" width="512" height="512"></canvas>
       <div class="rhud"><button id="rpl">${R.playing?'⏸':'▶'}</button>
       <input type="range" id="rsl" min="0" max="${R.frames.length-1}" value="${R.idx}">
@@ -421,7 +426,7 @@ function secRadar(){
       :`<div class="rstatus">${R.fail?'Radar unavailable: '+esc(R.fail)+'<br><small>Use Refresh to retry</small>':'Loading radar tiles…'}</div>`}
     </div>
     ${R.failedTiles?`<div class="note">Some map tiles are missing. Refresh to retry.</div>`:''}
-    ${R.ready?`<div class="legend">light <i style="background:#7fd4ff"></i><i style="background:#4a90d9"></i><i style="background:#5cdb95"></i><i style="background:#f2c14e"></i><i style="background:#e4572e"></i><i style="background:#b03be4"></i> heavy</div>`:''}`;
+    ${R.ready?`<div class="legend"><a href="https://www.rainviewer.com/api/color-schemes.html" target="_blank" rel="noopener" style="color:var(--dim2)">Radar rain/snow color key</a></div>`:''}`;
 }
 function wireRadar(){
   const R=S.radar; if(!R.ready||!$('rcv')) return;
@@ -445,6 +450,7 @@ function wireRecovery(){
 function render(){
   const wx=S.wx,B=$('body'),L=S.locations.find(l=>l.id===S.sel);
   $('locName').textContent='📍 '+(wx?.location||L?.name||'Choose location')+' ▾';
+  if(!radarOnScreen()&&S.radar.loading)resetRadar();
   renderAlerts();
   $('offlineBar').style.display=S.error?'block':'none';
   $('offlineBar').textContent=S.error+(wx?` · Saved ${new Date(wx.updated).toLocaleString()}`:'');
@@ -453,6 +459,8 @@ function render(){
     B.innerHTML=S.busy?recovery('Loading weather…'):recovery(S.error||'Choose a location to get started.');
     wireRecovery();return;
   }
+
+  ensureRadar();
 
   // WIDE (Fold inner display, ~600px+): no tabs — everything visible at once in two columns
   if(S.wide){
@@ -491,7 +499,6 @@ async function loadFor(L,force){
   // Alerts and radar do not depend on a successful forecast response.
   fetchAlerts(L.lat,L.lon,signal).then(a=>{if(current()){S.alerts=a;S.alertState='ready';renderAlerts();}})
     .catch(e=>{if(current()&&!signal.aborted){S.alertState='unavailable';record('alerts',e);renderAlerts();}});
-  loadRadar(L.lat,L.lon);
   try{
     const wx=await fetchWeather(L.lat,L.lon,L.name,signal);
     if(!current())return;
@@ -703,17 +710,15 @@ $('diagRun').onclick=async()=>{
     const age=newest?Math.round((Date.now()/1000-newest)/60):-1;
     P(`rainviewer meta: ${past.length?'✓':'✗'} ${past.length} past frames · newest ${age} min old ${age>25?'✗ STALE':'✓'} · ${ms}ms`);
     if(past.length){const f=past[past.length-1];const{xf,yf}=mercator(L.lat,L.lon,7);
-      const[tms,tr]=await timed(()=>probe(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
+      const[tms,tr]=await timed(()=>probe(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/2/1_1.png`));
       P(`radar tile (past): ${tr.ok?'✓':'✗'} ${tr.status} · ${tms}ms`);}
     const nc=meta.radar?.nowcast||[];
     if(nc.length){const f=nc[0];const{xf,yf}=mercator(L.lat,L.lon,7);
-      const[nms,nr]=await timed(()=>probe(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
+      const[nms,nr]=await timed(()=>probe(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/2/1_1.png`));
       P(`radar tile (nowcast): ${nr.ok?'✓':'✗'} ${nr.status} · ${nms}ms · path=${f.path.slice(0,40)}`);}
     else P('radar nowcast: not provided by this feed');
   }catch(e){P('rainviewer: ✗ '+e.message);}
-  try{const{xf,yf}=mercator(L.lat,L.lon,7);
-    const[ms,r]=await timed(()=>probe(`https://basemaps.cartocdn.com/dark_all/7/${Math.floor(xf)}/${Math.floor(yf)}.png`));
-    P(`basemap tile: ${r.ok?'✓':'✗'} ${r.status} · ${ms}ms`);}catch(e){P('basemap: ✗ '+e.message);}
+  P(`basemap: OpenStreetMap · ${S.radar.base.length} loaded tiles · requested only while radar is visible`);
   // app radar state
   P(`radar state: ready=${S.radar.ready} · frames=${S.radar.frames.length} · fail='${S.radar.fail}'`);
   // caches
