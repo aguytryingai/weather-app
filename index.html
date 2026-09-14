@@ -13,7 +13,7 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;background:var(--bg2);color:var(--txt);display:flex;justify-content:center}
-#app{width:100%;max-width:520px;height:100dvh;display:flex;flex-direction:column;background:linear-gradient(175deg,var(--bg1),var(--bg2));overflow:hidden;position:relative;
+#app{width:100%;max-width:520px;height:100vh;height:100dvh;display:flex;flex-direction:column;background:linear-gradient(175deg,var(--bg1),var(--bg2));overflow:hidden;position:relative;
   padding-top:env(safe-area-inset-top)}
 #locBtn{cursor:pointer}
 .sheet{position:absolute;inset:0;z-index:40;background:linear-gradient(175deg,#1E3049,var(--bg2));display:flex;flex-direction:column;
@@ -50,7 +50,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 .sugg .it:active{background:rgba(255,255,255,.08)}
 .sugg .it .sub{font-size:11.5px;color:var(--dim);text-align:right;flex-shrink:0}
 .sugg .none{padding:11px 14px;font-size:12.5px;color:var(--dim)}
-.alert{margin:2px 18px 6px;padding:10px 13px;border-radius:12px;background:rgba(228,87,46,.22);border-left:3px solid var(--alert);font-size:12.5px;line-height:1.45;flex-shrink:0}
+.alert{max-height:30vh;overflow:auto;margin:2px 18px 6px;padding:10px 13px;border-radius:12px;background:rgba(228,87,46,.22);border-left:3px solid var(--alert);font-size:12.5px;line-height:1.45;flex-shrink:0}
 .alert b{display:block;font-size:13px}
 .body{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:8px;scrollbar-width:none}
 .body::-webkit-scrollbar{display:none}
@@ -98,6 +98,8 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 @keyframes sp{to{transform:rotate(360deg)}}
 @keyframes slideL{from{transform:translateX(28px);opacity:.35}}
 @keyframes slideR{from{transform:translateX(-28px);opacity:.35}}
+.recovery{padding:16px;text-align:center;line-height:1.5;color:var(--dim2)}
+.recovery button{margin:8px 4px;padding:10px;border:0;border-radius:8px;cursor:pointer}
 .offline{background:rgba(242,193,78,.15);color:#F2C14E;font-size:11.5px;text-align:center;padding:5px;flex-shrink:0}
 /* Cover display (Z Flip 6 front screen, ~277px). Placed LAST: media queries add no
    specificity, so these must come after the base rules to actually win. */
@@ -108,7 +110,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
   .head .loc{font-size:11px}
   .hbtns{gap:6px}
   .icon-btn{width:30px;height:30px;font-size:13px}
-  #alertSlot{display:none!important}
+  .alert{margin:2px 10px 4px;padding:6px 8px;font-size:11px;max-height:66px;overflow:auto}
   .sheet-head{padding:10px 12px 6px;font-size:14px}
   .locrow{padding:9px 8px}
   .locrow .nm b{font-size:13px}
@@ -132,7 +134,8 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
   .day{grid-template-columns:40px 24px 28px 1fr 28px;gap:6px;padding:7px 10px;font-size:12px}
   .day .lo{font-size:11px}
   .day .pp{font-size:9px}
-  .tabs{display:none}
+  .tabs button{padding:5px 0;font-size:9px}
+  .tabs button .ic{font-size:14px;margin-bottom:1px}
   .note{font-size:10px;padding:6px 10px}
 }
 
@@ -176,7 +179,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v2.2.0</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v2.3.0</div></div>
   <div class="offline" id="offlineBar" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
     <div id="locBtn"><h1>Skyward</h1><div class="loc" id="locName">— ▾</div></div>
@@ -184,6 +187,7 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
       <button class="icon-btn" id="installBtn" title="Install app">⬇</button>
       <button class="icon-btn" id="btnSearch" title="Locations">📍</button>
       <button class="icon-btn" id="btnRefresh" title="Refresh">⟳</button>
+      <button class="icon-btn" id="btnDiagnostics" title="Diagnostics" aria-label="Diagnostics">?</button>
     </div>
   </div>
   <div id="alertSlot"></div>
@@ -204,12 +208,13 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
       <button id="diagRun" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:14px;cursor:pointer">Run checks</button>
       <button id="diagCopy" style="flex:1;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;cursor:pointer">Copy report</button>
     </div>
-    <pre id="diagOut" style="flex:1;overflow:auto;margin:0 18px 18px;padding:14px;background:rgba(0,0,0,.35);border-radius:12px;font-size:11.5px;line-height:1.55;white-space:pre-wrap;font-family:ui-monospace,monospace;color:#C9DDF2">Tap “Run checks”, then “Copy report” and paste it to Claude.</pre>
+    <pre id="diagOut" style="flex:1;overflow:auto;margin:0 18px 18px;padding:14px;background:rgba(0,0,0,.35);border-radius:12px;font-size:11.5px;line-height:1.55;white-space:pre-wrap;font-family:ui-monospace,monospace;color:#C9DDF2">Tap “Run checks”, then “Copy report” to share the results. Reports include the selected location.</pre>
   </div>
 </div>
 
+<script src="reliability.js"></script>
 <script>
-const VERSION='2.2.0';
+const VERSION='2.3.0';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -237,80 +242,115 @@ const S={
   radar:{frames:[],idx:0,playing:true,tiles:{},base:[],ready:false,fail:'',z:7}
 };
 const $=id=>document.getElementById(id);
+const {request, escape:esc, display:val, record}=Reliability;
+window.addEventListener('error',e=>record('script',e.error||new Error(e.message)));
+window.addEventListener('unhandledrejection',e=>record('unhandled promise',e.reason||new Error('Unknown failure')));
+const locationKey=L=>`wx:${L.lat.toFixed(3)},${L.lon.toFixed(3)}`;
+const hasCoordinates=L=>L&&Reliability.number(L.lat)!==null&&Reliability.number(L.lon)!==null&&Math.abs(L.lat)<=90&&Math.abs(L.lon)<=180;
+S.locations=Array.isArray(S.locations)?S.locations.filter(l=>l&&typeof l.id==='string'&&typeof l.name==='string'&&(l.isGPS||hasCoordinates(l))):[];
+S.locations.filter(l=>l.isGPS&&!hasCoordinates(l)).forEach(l=>{l.lat=null;l.lon=null;});
+if(!S.locations.some(l=>l.id==='here'))S.locations.unshift({id:'here',name:'My Location',lat:null,lon:null,isGPS:true});
+S.error='';S.busy=false;S.alertState='idle';
+function cachedFor(L){
+  if(!hasCoordinates(L))return null;
+  const key=locationKey(L),w=cget(key)||store.get('last:'+key,null);
+  return Reliability.savedWeather(w,L.lat,L.lon)?w:null;
+}
+
 
 /* ================= DATA ================= */
-async function fetchWeather(lat,lon,name){
-  const key=`wx:${lat.toFixed(3)},${lon.toFixed(3)}`;
+async function fetchWeather(lat,lon,name,signal){
+  const key=locationKey({lat,lon});
   const hit=cget(key); if(hit) return {...hit,location:name,fromCache:true};
-  const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
+  const d=await request(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
     `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,uv_index,is_day`+
     `&hourly=temperature_2m,precipitation_probability,weather_code,is_day`+
     `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset`+
-    `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=10`);
-  if(!r.ok) throw new Error('weather HTTP '+r.status);
-  const d=await r.json();
-  // BUG FIX: compare against the LOCATION's local time (d.current.time), not device time —
-  // otherwise the hourly strip is offset by the timezone difference for remote cities
-  const nowIdx=Math.max(0,d.hourly.time.findIndex(t=>t>=d.current.time)-1);
-  const wx={lat,lon,location:name,updated:Date.now(),
-    current:{temp:Math.round(d.current.temperature_2m),feels:Math.round(d.current.apparent_temperature),
-      hum:d.current.relative_humidity_2m,wind:Math.round(d.current.wind_speed_10m),
-      precip:d.current.precipitation,uv:d.current.uv_index??0,
-      c:cond(d.current.weather_code,d.current.is_day)},
-    hourly:d.hourly.time.slice(nowIdx,nowIdx+24).map((t,i)=>{const j=nowIdx+i;return{
-      t,temp:Math.round(d.hourly.temperature_2m[j]),p:d.hourly.precipitation_probability[j]??0,
-      c:cond(d.hourly.weather_code[j],d.hourly.is_day[j])};}),
-    daily:d.daily.time.map((t,i)=>({t,hi:Math.round(d.daily.temperature_2m_max[i]),lo:Math.round(d.daily.temperature_2m_min[i]),
-      p:d.daily.precipitation_probability_max?.[i]??0,c:cond(d.daily.weather_code[i],1)})),
-    sunrise:d.daily.sunrise[0],sunset:d.daily.sunset[0]};
+    `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=10`,{signal});
+  const wx=Reliability.normalize(d,lat,lon,name,cond);
   cset(key,wx,6e5);
-  store.set('last:'+key,wx);               // persistent offline copy
+  store.set('last:'+key,wx);
   return wx;
 }
-async function fetchAlerts(lat,lon){
-  try{const r=await fetch(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`,{headers:{Accept:'application/geo+json'}});
-    if(!r.ok) return [];
-    const j=await r.json();
-    return (j.features||[]).slice(0,2).map(f=>({event:f.properties.event,head:f.properties.headline||''}));
-  }catch(e){return [];}
+async function fetchAlerts(lat,lon,signal){
+  const j=await request(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`,
+    {signal,headers:{Accept:'application/geo+json'}});
+  if(!Array.isArray(j.features))throw new Error('Alert response is incomplete');
+  const rank={Extreme:0,Severe:1,Moderate:2,Minor:3,Unknown:4};
+  return j.features.map(f=>f.properties).filter(p=>p&&(!p.expires||Date.parse(p.expires)>Date.now()))
+    .sort((a,b)=>(rank[a.severity]??4)-(rank[b.severity]??4))
+    .map(p=>({event:p.event,head:p.headline||'',description:p.description||'',instruction:p.instruction||''}));
 }
-async function suggest(q){
-  const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=en&format=json`);
-  const j=await r.json();
-  return (j.results||[]).map(x=>({name:x.name,sub:[x.admin1,x.country].filter(Boolean).join(', '),lat:x.latitude,lon:x.longitude}));
+async function suggest(q,signal){
+  const j=await request(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=en&format=json`,{signal});
+  return (j.results||[]).filter(x=>hasCoordinates({lat:x.latitude,lon:x.longitude}))
+    .map(x=>({name:x.name,sub:[x.admin1,x.country].filter(Boolean).join(', '),lat:x.latitude,lon:x.longitude}));
 }
 
-/* ================= RADAR — CORS-safe basemap, true centering, precache ================= */
-async function bmp(url){const r=await fetch(url);if(!r.ok)throw 0;return createImageBitmap(await r.blob());}
+/* ================= RADAR ================= */
+async function bmp(url,signal){
+  const blob=await request(url,{signal,retries:0},r=>r.blob());
+  if(typeof createImageBitmap==='function')return createImageBitmap(blob);
+  return new Promise((resolve,reject)=>{
+    const im=new Image(),src=URL.createObjectURL(blob);
+    im.onload=()=>{URL.revokeObjectURL(src);resolve(im);};
+    im.onerror=()=>{URL.revokeObjectURL(src);reject(new Error('Image decode failed'));};
+    im.src=src;
+  });
+}
 function mercator(lat,lon,z){const n=2**z;return{xf:(lon+180)/360*n,yf:(1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n};}
 
-let radarToken=0;
+let radarToken=0,radarController=null;
+function disposeRadar(R){
+  [...R.base,...Object.values(R.tiles).flat()].forEach(t=>t.im.close?.());
+}
+function resetRadar(){
+  ++radarToken;radarController?.abort();disposeRadar(S.radar);
+  S.radar={frames:[],idx:0,playing:S.radar.playing,tiles:{},base:[],ready:false,fail:'',z:7};
+}
 async function loadRadar(lat,lon){
-  const tok=++radarToken;   // BUG FIX: guard against race when switching cities quickly
-  const R=S.radar; R.ready=false; R.fail=''; R.tiles={}; R.base=[]; R.frames=[];
+  resetRadar();
+  const tok=radarToken,controller=new AbortController();radarController=controller;
+  let expired=false;const deadline=setTimeout(()=>{expired=true;controller.abort();},20000);
+  // Every callback writes only into this request's private state.
+  const R={...S.radar,tiles:{},base:[],frames:[]};
   try{
-    const meta=await (await fetch('https://api.rainviewer.com/public/weather-maps.json')).json();
-    R.frames=[...(meta.radar?.past||[]).slice(-7),...(meta.radar?.nowcast||[]).slice(0,3)];
-    if(!R.frames.length) throw new Error('no frames');
-    const z=R.z,{xf,yf}=mercator(lat,lon,z); R.xf=xf; R.yf=yf;
-    const tx0=Math.floor(xf)-1, ty0=Math.floor(yf)-1;
-    const jobs=[];
+    const meta=await request('https://api.rainviewer.com/public/weather-maps.json',{signal:controller.signal});
+    const past=Array.isArray(meta.radar?.past)?meta.radar.past:[];
+    const future=Array.isArray(meta.radar?.nowcast)?meta.radar.nowcast:[];
+    R.frames=[...past.slice(-7).map(f=>({...f,forecast:false})),...future.slice(0,3).map(f=>({...f,forecast:true}))]
+      .filter(f=>Number.isFinite(f.time)&&typeof f.path==='string');
+    if(!R.frames.length)throw new Error('No radar frames');
+    const z=R.z,{xf,yf}=mercator(Math.max(-85.0511,Math.min(85.0511,lat)),lon,z);R.xf=xf;R.yf=yf;
+    const tx0=Math.floor(xf)-1,ty0=Math.floor(yf)-1,jobs=[];
     for(let dx=0;dx<3;dx++)for(let dy=0;dy<3;dy++){
-      const tx=tx0+dx,ty=ty0+dy;
-      jobs.push(bmp(`https://basemaps.cartocdn.com/dark_all/${z}/${tx}/${ty}.png`)
-        .then(im=>R.base.push({im,tx,ty})).catch(()=>{}));   // basemap optional — radar draws without it
-      R.frames.forEach(f=>{
-        jobs.push(bmp(`${meta.host}${f.path}/256/${z}/${tx}/${ty}/4/1_1.png`)
-          .then(im=>{(R.tiles[f.time]=R.tiles[f.time]||[]).push({im,tx,ty});}).catch(()=>{}));
-      });
+      const tx=tx0+dx,ty=ty0+dy,x=((tx%2**z)+2**z)%2**z;
+      if(ty<0||ty>=2**z)continue;
+      jobs.push(async()=>R.base.push({im:await bmp(`https://basemaps.cartocdn.com/dark_all/${z}/${x}/${ty}.png`,controller.signal),tx,ty}));
+      R.frames.forEach(f=>jobs.push(async()=>{
+        const im=await bmp(`${meta.host}${f.path}/256/${z}/${x}/${ty}/4/1_1.png`,controller.signal);
+        (R.tiles[f.time]??=[]).push({im,tx,ty});
+      }));
     }
-    await Promise.all(jobs);
-    if(tok!==radarToken) return;   // a newer load superseded this one — discard
-    const withTiles=R.frames.filter(f=>(R.tiles[f.time]||[]).length>0);
-    if(!withTiles.length) throw new Error('tiles blocked');
-    R.frames=withTiles; R.idx=Math.max(0,R.frames.length-4); R.ready=true;
-  }catch(e){if(tok!==radarToken)return;R.fail=e.message||'unavailable';}
-  if(radarOnScreen())render();   // BUG FIX: dashboard layout has no tabs, so it never refreshed after load
+    // Bound concurrent decoding and requests on memory-constrained phones.
+    let cursor=0;
+    await Promise.all(Array.from({length:6},async()=>{
+      while(cursor<jobs.length&&!controller.signal.aborted){
+        const job=jobs[cursor++];try{await job();}catch(e){if(!controller.signal.aborted)R.failedTiles=(R.failedTiles||0)+1;}
+      }
+    }));
+    if(tok!==radarToken){disposeRadar(R);return;}
+    R.frames=R.frames.filter(f=>(R.tiles[f.time]||[]).length>0);
+    if(!R.frames.length)throw new Error(expired?'Radar loading timed out':'Radar tiles could not be loaded');
+    if(expired)R.failedTiles=(R.failedTiles||0)+1;
+    const lastPast=R.frames.map(f=>!f.forecast).lastIndexOf(true);
+    R.idx=Math.max(0,lastPast);R.ready=true;
+    S.radar=R;
+  }catch(e){
+    disposeRadar(R);if(tok!==radarToken)return;
+    S.radar.fail=expired?'Radar loading timed out':e.message||'Unavailable';record('radar',new Error(S.radar.fail));
+  }finally{clearTimeout(deadline);}
+  if(radarOnScreen())render();
 }
 function drawRadar(){
   const cv=$('rcv'); if(!cv) return;
@@ -324,46 +364,51 @@ function drawRadar(){
   ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(W/2,W/2,8,0,7);ctx.stroke();
   ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(W/2,W/2,3.5,0,7);ctx.fill();
   const ts=$('rts');
-  if(ts&&f){const isFc=R.frames.indexOf(f)>=R.frames.filter(x=>x.time*1000<=Date.now()).length;
-    ts.textContent=new Date(f.time*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+(isFc?' · forecast':'');}
+  if(ts&&f){const isFc=f.forecast;
+    ts.textContent=new Date(f.time*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+(isFc?' · forecast':' · '+Math.max(0,Math.round((Date.now()/1000-f.time)/60))+' min ago')+((R.tiles[f.time]||[]).length<9?' · incomplete':'');}
   const sl=$('rsl'); if(sl) sl.value=R.idx;
 }
 const radarOnScreen=()=>S.tab==='radar'||S.wide;
-setInterval(()=>{if(S.radar.playing&&S.radar.ready&&radarOnScreen()){S.radar.idx=(S.radar.idx+1)%S.radar.frames.length;drawRadar();}},700);
+setInterval(()=>{if(!document.hidden&&S.radar.playing&&S.radar.ready&&radarOnScreen()){S.radar.idx=(S.radar.idx+1)%S.radar.frames.length;drawRadar();}},700);
 
 /* ================= RENDER ================= */
 const fmtH=t=>new Date(t).toLocaleTimeString([],{hour:'numeric'});
 const fmtD=t=>new Date(t+'T12:00').toLocaleDateString([],{weekday:'short'});
-const fmtSun=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+const fmtSun=t=>t&&Number.isFinite(Date.parse(t))?new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'—';
 
 /* --- section builders (composable so wide layouts can show several at once) --- */
 function secNow(wx,hours){
   const c=wx.current;
   return `
-    <div class="hero"><div class="ic">${c.c.icon}</div><div class="big">${c.temp}°</div>
+    <div class="hero"><div class="ic">${c.c.icon}</div><div class="big">${val(c.temp,'°')}</div>
       <div class="cond">${c.c.text}</div>
-      <div class="feels">Feels like ${c.feels}° · H:${wx.daily[0].hi}° L:${wx.daily[0].lo}°</div></div>
+      <div class="feels">Feels like ${val(c.feels,'°')} · H:${val(wx.daily[0].hi,'°')} L:${val(wx.daily[0].lo,'°')}</div></div>
     <div class="grid">
-      <div class="card"><div class="k">Wind</div><div class="v">${c.wind} mph</div></div>
-      <div class="card"><div class="k">Humidity</div><div class="v">${c.hum}%</div></div>
-      <div class="card"><div class="k">UV index</div><div class="v">${(+c.uv).toFixed(1)}</div><div class="s">${c.uv<3?'Low':c.uv<6?'Moderate':c.uv<8?'High':'Very high'}</div></div>
+      <div class="card"><div class="k">Wind</div><div class="v">${val(c.wind,' mph')}</div></div>
+      <div class="card"><div class="k">Humidity</div><div class="v">${val(c.hum,'%')}</div></div>
+      <div class="card"><div class="k">UV index</div><div class="v">${c.uv===null?'—':c.uv.toFixed(1)}</div><div class="s">${c.uv===null?'Unavailable':c.uv<3?'Low':c.uv<6?'Moderate':c.uv<8?'High':c.uv<11?'Very high':'Extreme'}</div></div>
       <div class="card"><div class="k">Sun</div><div class="v" style="font-size:14px">↑ ${fmtSun(wx.sunrise)}<br>↓ ${fmtSun(wx.sunset)}</div></div>
     </div>
     <div class="sect">Next hours</div>
     <div class="hstrip">${wx.hourly.slice(0,hours||12).map(hcell).join('')}</div>`;
 }
-const hcell=h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i">${h.c.icon}</div><div class="d">${h.temp}°</div><div class="p">${h.p>5?h.p+'%':''}</div></div>`;
+const hcell=h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i">${h.c.icon}</div><div class="d">${val(h.temp,'°')}</div><div class="p">${val(h.p,'%')}</div></div>`;
 function secHourly(wx,wrap){
   return `<div class="sect">24-hour forecast</div>
     <div class="hstrip"${wrap?' style="flex-wrap:wrap;row-gap:9px"':''}>${wx.hourly.map(hcell).join('')}</div>`;
 }
 function secDaily(wx){
-  const mn=Math.min(...wx.daily.map(d=>d.lo)),mx=Math.max(...wx.daily.map(d=>d.hi)),rng=Math.max(1,mx-mn);
-  return `<div class="sect">10-day forecast</div>`+wx.daily.map((d,i)=>`
-    <div class="day"><div>${i===0?'Today':fmtD(d.t)}${d.p>20?`<div class="pp">${d.p}%</div>`:''}</div><div>${d.c.icon}</div>
-    <div class="lo">${d.lo}°</div>
-    <div class="tbar"><i style="left:${(d.lo-mn)/rng*100}%;width:${Math.max(4,(d.hi-d.lo)/rng*100)}%"></i></div>
-    <div class="hi">${d.hi}°</div></div>`).join('');
+  const lows=wx.daily.map(d=>d.lo).filter(v=>Reliability.number(v)!==null);
+  const highs=wx.daily.map(d=>d.hi).filter(v=>Reliability.number(v)!==null);
+  const mn=Math.min(...lows),mx=Math.max(...highs),rng=Math.max(1,mx-mn);
+  return `<div class="sect">10-day forecast</div>`+wx.daily.map((d,i)=>{
+    const valid=Reliability.number(d.lo)!==null&&Reliability.number(d.hi)!==null&&d.hi>=d.lo;
+    const left=valid?(d.lo-mn)/rng*100:0,width=valid?Math.min(100-left,Math.max(1,(d.hi-d.lo)/rng*100)):0;
+    return `<div class="day"><div>${i===0?'Today':fmtD(d.t)}<div class="pp">${val(d.p,'%')}</div></div><div>${d.c.icon}</div>
+    <div class="lo">${val(d.lo,'°')}</div>
+    <div class="tbar">${valid?`<i style="left:${left}%;width:${width}%"></i>`:''}</div>
+    <div class="hi">${val(d.hi,'°')}</div></div>`;
+  }).join('');
 }
 function secRadar(){
   const R=S.radar;
@@ -373,8 +418,9 @@ function secRadar(){
       <div class="rhud"><button id="rpl">${R.playing?'⏸':'▶'}</button>
       <input type="range" id="rsl" min="0" max="${R.frames.length-1}" value="${R.idx}">
       <div class="ts" id="rts"></div></div>`
-      :`<div class="rstatus">${R.fail?'Radar unavailable: '+R.fail+'<br><small>Retrying on next refresh</small>':'Loading radar tiles…'}</div>`}
+      :`<div class="rstatus">${R.fail?'Radar unavailable: '+esc(R.fail)+'<br><small>Use Refresh to retry</small>':'Loading radar tiles…'}</div>`}
     </div>
+    ${R.failedTiles?`<div class="note">Some map tiles are missing. Refresh to retry.</div>`:''}
     ${R.ready?`<div class="legend">light <i style="background:#7fd4ff"></i><i style="background:#4a90d9"></i><i style="background:#5cdb95"></i><i style="background:#f2c14e"></i><i style="background:#e4572e"></i><i style="background:#b03be4"></i> heavy</div>`:''}`;
 }
 function wireRadar(){
@@ -383,13 +429,30 @@ function wireRadar(){
   $('rpl').onclick=()=>{R.playing=!R.playing;$('rpl').textContent=R.playing?'⏸':'▶';};
   $('rsl').oninput=e=>{R.playing=false;$('rpl').textContent='▶';R.idx=+e.target.value;drawRadar();};
 }
-const footer=wx=>`<div class="note">Updated ${new Date(wx.updated).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}${wx.fromCache?' · cached':''} · v${VERSION}</div>`;
-
+const footer=wx=>`<div class="note">Retrieved ${new Date(wx.updated).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} · ${Math.max(0,Math.round((Date.now()-wx.updated)/6e4))} min ago${wx.fromCache?' · saved':''}<br>Forecast time ${esc(wx.validAt)} ${esc(wx.timezone)} · v${VERSION}</div>`;
+function renderAlerts(){
+  $('alertSlot').innerHTML=S.alerts.length?`<div class="alert">${S.alerts.map(a=>`<details><summary>⚠ ${esc(a.event)}</summary><p>${esc(a.head)}</p><p style="white-space:pre-wrap">${esc(a.description)}\n${esc(a.instruction)}</p></details>`).join('')}</div>`
+    :S.alertState==='unavailable'?'<div class="alert">Weather alerts unavailable. Try Refresh.</div>'
+    :S.alertState==='loading'?'<div class="note">Checking weather alerts…</div>':'';
+}
+function recovery(message){
+  return `<div class="recovery" role="status">${esc(message)}<br><button id="retryWeather">Retry</button><button id="chooseLocation">Choose location</button></div>`;
+}
+function wireRecovery(){
+  if($('retryWeather'))$('retryWeather').onclick=()=>{const L=S.locations.find(l=>l.id===S.sel);if(hasCoordinates(L))loadFor(L,true);else boot();};
+  if($('chooseLocation'))$('chooseLocation').onclick=()=>openSheet(true);
+}
 function render(){
-  const wx=S.wx; if(!wx) return;
-  $('locName').textContent='📍 '+wx.location+' ▾';
-  $('alertSlot').innerHTML=S.alerts.length?`<div class="alert"><b>⚠ ${S.alerts[0].event}</b>${(S.alerts[0].head||'').slice(0,120)}</div>`:'';
-  const B=$('body');
+  const wx=S.wx,B=$('body'),L=S.locations.find(l=>l.id===S.sel);
+  $('locName').textContent='📍 '+(wx?.location||L?.name||'Choose location')+' ▾';
+  renderAlerts();
+  $('offlineBar').style.display=S.error?'block':'none';
+  $('offlineBar').textContent=S.error+(wx?` · Saved ${new Date(wx.updated).toLocaleString()}`:'');
+  if(!wx){
+    $('tabs').innerHTML='';
+    B.innerHTML=S.busy?recovery('Loading weather…'):recovery(S.error||'Choose a location to get started.');
+    wireRecovery();return;
+  }
 
   // WIDE (Fold inner display, ~600px+): no tabs — everything visible at once in two columns
   if(S.wide){
@@ -414,20 +477,31 @@ function render(){
 }
 
 /* ================= FLOW ================= */
+let loadToken=0,loadController=null;
 async function loadFor(L,force){
-  const key=`wx:${L.lat.toFixed(3)},${L.lon.toFixed(3)}`;
-  if(force) mem.delete(key);
-  try{
-    S.wx=await fetchWeather(L.lat,L.lon,L.name);
-    $('offlineBar').style.display='none';
-  }catch(e){
-    const saved=store.get('last:'+key,null);
-    if(saved){S.wx={...saved,location:L.name,fromCache:true};$('offlineBar').style.display='block';}
-    else throw e;
-  }
-  render();
-  fetchAlerts(L.lat,L.lon).then(a=>{S.alerts=a;render();});
+  if(!hasCoordinates(L))return;
+  const token=++loadToken;loadController?.abort();cancelBoot?.();
+  const controller=new AbortController();loadController=controller;const {signal}=controller;
+  const current=()=>token===loadToken&&S.sel===L.id;
+  const key=locationKey(L);if(force)mem.delete(key);
+  const saved=store.get('last:'+key,null);
+  S.wx=Reliability.savedWeather(saved,L.lat,L.lon)?{...saved,location:L.name,fromCache:true}:null;
+  S.busy=true;S.error=S.wx?'Refreshing saved forecast…':'';S.alerts=[];S.alertState='loading';
+  resetRadar();$('loading').style.display='none';render();
+  // Alerts and radar do not depend on a successful forecast response.
+  fetchAlerts(L.lat,L.lon,signal).then(a=>{if(current()){S.alerts=a;S.alertState='ready';renderAlerts();}})
+    .catch(e=>{if(current()&&!signal.aborted){S.alertState='unavailable';record('alerts',e);renderAlerts();}});
   loadRadar(L.lat,L.lon);
+  try{
+    const wx=await fetchWeather(L.lat,L.lon,L.name,signal);
+    if(!current())return;
+    S.wx=wx;S.error='';
+  }catch(e){
+    if(!current()||signal.aborted)return;
+    record('forecast',e);S.error=S.wx?'Could not refresh — showing saved forecast':'Could not load weather: '+e.message;
+  }finally{
+    if(current()){S.busy=false;render();}
+  }
 }
 async function switchLocation(id){
   S.sel=id; const L=S.locations.find(l=>l.id===id);
@@ -444,8 +518,9 @@ function removeLocation(id){
 }
 
 /* ================= LOCATIONS SHEET ================= */
-function openSheet(focus){$('sheet').hidden=false;renderLocList();if(focus)$('searchInput').focus();}
-function closeSheet(){$('sheet').hidden=true;$('searchInput').value='';suggList=[];renderSugg();}
+const previewAttempted=new Set();
+function openSheet(focus){previewAttempted.clear();$('sheet').hidden=false;renderLocList();if(focus)$('searchInput').focus();}
+function closeSheet(){$('searchGo').textContent='Add';++suggSeq;clearTimeout(suggTimer);searchController?.abort();$('sheet').hidden=true;$('searchInput').value='';suggList=[];renderSugg();}
 $('locBtn').onclick=()=>openSheet(false);
 $('btnSearch').onclick=()=>openSheet(true);
 $('sheetClose').onclick=closeSheet;
@@ -454,13 +529,13 @@ function renderLocList(){
   if($('sheet').hidden) return;
   $('locList').innerHTML=S.locations.map(l=>{
     const key=l.lat!=null?`wx:${l.lat.toFixed(3)},${l.lon.toFixed(3)}`:null;
-    const w=key?(cget(key)||store.get('last:'+key,null)):null;
+    const w=cachedFor(l);
     const wxCell=l.lat==null?'<span style="font-size:11px">tap to locate</span>'
-      :w?`<span>${w.current.c.icon}</span><span>${w.current.temp}°</span>`:'<span>…</span>';
-    return `<div class="locrow ${l.id===S.sel?'sel':''}" data-id="${l.id}">
-      <div class="nm"><b>${l.isGPS?'◉ ':''}${l.name}</b><span>${l.isGPS?'Current location':''}</span></div>
+      :w?`<span>${w.current.c.icon}</span><span>${val(w.current.temp,'°')}</span>`:'<span>…</span>';
+    return `<div class="locrow ${l.id===S.sel?'sel':''}" data-id="${esc(l.id)}">
+      <div class="nm"><b>${l.isGPS?'◉ ':''}${esc(l.name)}</b><span>${l.isGPS?'Current location':''}</span></div>
       <div class="wx">${wxCell}</div>
-      ${l.isGPS?'':`<button class="del" data-del="${l.id}">✕</button>`}</div>`;
+      ${l.isGPS?'':`<button class="del" data-del="${esc(l.id)}">✕</button>`}</div>`;
   }).join('');
   $('locList').querySelectorAll('.locrow').forEach(r=>r.onclick=async e=>{
     if(e.target.dataset.del){removeLocation(e.target.dataset.del);return;}
@@ -469,17 +544,18 @@ function renderLocList(){
     closeSheet(); await switchLocation(r.dataset.id);
   });
   // lazily fill missing temps, then refresh the list once
-  const missing=S.locations.filter(l=>l.lat!=null&&!cget(`wx:${l.lat.toFixed(3)},${l.lon.toFixed(3)}`)&&!store.get(`last:wx:${l.lat.toFixed(3)},${l.lon.toFixed(3)}`,null));
+  const missing=S.locations.filter(l=>hasCoordinates(l)&&!previewAttempted.has(l.id)&&!cachedFor(l));
+  missing.forEach(l=>previewAttempted.add(l.id));
   if(missing.length) Promise.allSettled(missing.map(l=>fetchWeather(l.lat,l.lon,l.name))).then(renderLocList);
 }
 
 /* ================= SEARCH ================= */
-let suggList=[],suggTimer=null,suggSeq=0;
+let suggList=[],suggTimer=null,suggSeq=0,searchController=null,searchError='';
 function renderSugg(){
   const q=$('searchInput').value.trim();
   $('suggBox').innerHTML=suggList.length
-    ?suggList.map((s,i)=>`<div class="it" data-i="${i}"><span>${s.name}</span><span class="sub">${s.sub}</span></div>`).join('')
-    :(q.length>=2?'<div class="none">No matches — check spelling</div>':'');
+    ?suggList.map((s,i)=>`<div class="it" data-i="${i}"><span>${esc(s.name)}</span><span class="sub">${esc(s.sub)}</span></div>`).join('')
+    :(q.length>=2?`<div class="none">${searchError?esc(searchError):'No matches — check spelling'}</div>`:'');
   $('suggBox').querySelectorAll('.it').forEach(el=>el.onclick=()=>pickSugg(+el.dataset.i));
 }
 async function pickSugg(i){
@@ -495,55 +571,72 @@ async function pickSugg(i){
   await switchLocation(id);
 }
 $('searchInput').addEventListener('input',()=>{
-  const q=$('searchInput').value.trim();
-  clearTimeout(suggTimer);
-  if(q.length<2){suggList=[];renderSugg();return;}
-  const seq=++suggSeq;
-  suggTimer=setTimeout(async()=>{
-    let r=[];try{r=await suggest(q);}catch(e){}
-    if(seq!==suggSeq) return;         // stale response — a newer keystroke superseded it
-    suggList=r;renderSugg();
-  },250);
+  const q=$('searchInput').value.trim(),seq=++suggSeq;
+  clearTimeout(suggTimer);searchController?.abort();suggList=[];searchError='';
+  if(q.length<2){renderSugg();return;}
+  $('suggBox').textContent='Searching…';
+  suggTimer=setTimeout(()=>searchLocations(q,seq,false),250);
 });
-// BUG FIX: Add/Enter used to require suggestions to have ALREADY arrived (silent no-op
-// if you typed fast). Now it fetches suggestions itself when the list is empty.
+async function searchLocations(q,seq,pick){
+  searchController?.abort();const controller=new AbortController();searchController=controller;
+  try{
+    const found=await suggest(q,controller.signal);
+    if(seq!==suggSeq)return;
+    suggList=found;searchError='';renderSugg();
+    if(pick&&found.length)await pickSugg(0);
+  }catch(e){
+    if(seq!==suggSeq||controller.signal.aborted)return;
+    suggList=[];searchError='Search unavailable. Try again.';record('search',e);renderSugg();
+  }finally{if(seq===suggSeq)$('searchGo').textContent='Add';}
+}
 async function addLocation(){
-  if(suggList.length){pickSugg(0);return;}
-  const q=$('searchInput').value.trim(); if(q.length<2) return;
+  const q=$('searchInput').value.trim();if(q.length<2)return;
+  clearTimeout(suggTimer);const seq=++suggSeq;
   $('searchGo').textContent='…';
-  try{suggList=await suggest(q);}catch(e){suggList=[];}
-  $('searchGo').textContent='Add';
-  if(suggList.length)pickSugg(0); else renderSugg();
+  await searchLocations(q,seq,true);$('searchGo').textContent='Add';
 }
 $('searchGo').onclick=addLocation;
 $('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')addLocation();});
 $('btnRefresh').onclick=()=>{const L=S.locations.find(l=>l.id===S.sel);if(L)loadFor(L,true);};
 
+let cancelBoot=null;
 function boot(){
-  const go=(lat,lon,nm)=>{Object.assign(S.locations[0],{lat,lon,name:nm});store.set('locs',S.locations);
-    loadFor(S.locations[0]).then(()=>$('loading').style.display='none')
-      .catch(e=>$('loadMsg').textContent='Could not load: '+e.message);};
-  let done=false;
-  const fallback=()=>{if(done)return;done=true;
-    const saved=S.locations[0].lat!=null?S.locations[0]:null;
-    if(saved)go(saved.lat,saved.lon,saved.name); else go(41.8781,-87.6298,'Chicago');};
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(async p=>{
-      if(done)return;done=true;
-      let nm='My Location';
-      try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json&zoom=14`);
-        const a=(await r.json()).address||{};
-        // unincorporated areas have no "city" — try local names before falling back to county
-        nm=a.city||a.town||a.village||a.hamlet||a.suburb||a.locality||a.municipality||a.county||nm;}catch(e){}
-      go(p.coords.latitude,p.coords.longitude,nm);
-    },fallback,{timeout:8000,maximumAge:3e5});
-    setTimeout(fallback,8500);
-  }else fallback();
+  cancelBoot?.();++loadToken;loadController?.abort();resetRadar();S.wx=null;S.alerts=[];S.alertState='idle';
+  let active=true,timer=null;
+  cancelBoot=()=>{active=false;clearTimeout(timer);};
+  const here=S.locations.find(l=>l.id==='here');S.sel=here.id;
+  $('loading').style.display='none';S.busy=false;S.error='';render();
+  const fallback=()=>{
+    if(!active)return;active=false;clearTimeout(timer);
+    if(hasCoordinates(here))loadFor(here);
+    else{S.wx=null;S.error='Location unavailable. Choose a city or retry location access.';render();}
+  };
+  if(!navigator.geolocation){fallback();return;}
+  timer=setTimeout(fallback,8500);
+  navigator.geolocation.getCurrentPosition(p=>{
+    if(!active)return;active=false;clearTimeout(timer);
+    Object.assign(here,{lat:p.coords.latitude,lon:p.coords.longitude,name:'My Location'});store.set('locs',S.locations);
+    loadFor(here);const token=loadToken;
+    // Naming is optional and never delays the forecast or recovery controls.
+    request(`https://nominatim.openstreetmap.org/reverse?lat=${here.lat}&lon=${here.lon}&format=json&zoom=14`,
+      {signal:loadController.signal,timeout:4000,retries:0}).then(j=>{
+      if(token!==loadToken||S.sel!==here.id)return;
+      const a=j.address||{};here.name=a.city||a.town||a.village||a.hamlet||a.suburb||a.locality||a.municipality||a.county||'My Location';
+      store.set('locs',S.locations);if(S.wx)S.wx.location=here.name;render();
+    }).catch(e=>{if(e.name!=='AbortError')record('location name',e);});
+  },fallback,{timeout:8000,maximumAge:3e5});
 }
-boot();
-setInterval(()=>{const L=S.locations.find(l=>l.id===S.sel);if(L&&L.lat!=null)loadFor(L);},6e5);   // 10-min auto refresh
-document.addEventListener('visibilitychange',()=>{                                                // refresh stale data on reopen
-  if(!document.hidden&&S.wx&&Date.now()-S.wx.updated>6e5){const L=S.locations.find(l=>l.id===S.sel);if(L)loadFor(L);}});
+// Boot after all state and handlers are initialized, even when geolocation is unavailable.
+setTimeout(boot,0);
+function refreshSelected(){
+  const L=S.locations.find(l=>l.id===S.sel);
+  if(hasCoordinates(L)&&!S.busy)loadFor(L,true);
+}
+setInterval(()=>{if(!document.hidden)refreshSelected();},6e5);
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&(!S.wx||S.error||Date.now()-S.wx.updated>6e5))refreshSelected();
+});
+window.addEventListener('online',refreshSelected);
 
 /* ================= SWIPE NAVIGATION (phone layout) ================= */
 const TABS=['now','hourly','daily','radar'];
@@ -572,6 +665,7 @@ $('body').addEventListener('touchend',e=>{
 // Open by tapping the version line in the Now tab footer.
 document.addEventListener('click',e=>{if(e.target.closest('.note')){$('diag').hidden=false;}});
 $('diagClose').onclick=()=>$('diag').hidden=true;
+$('btnDiagnostics').onclick=()=>$('diag').hidden=false;
 $('diagCopy').onclick=async()=>{
   const t=$('diagOut').textContent;
   try{await navigator.clipboard.writeText(t);$('diagCopy').textContent='Copied ✓';}
@@ -579,6 +673,7 @@ $('diagCopy').onclick=async()=>{
   setTimeout(()=>$('diagCopy').textContent='Copy report',1500);
 };
 async function timed(fn){const t0=performance.now();const v=await fn();return[Math.round(performance.now()-t0),v];}
+const probe=(url,options={})=>request(url,{...options,retries:0},async r=>{const body=await r.text();return {ok:r.ok,status:r.status,json:async()=>JSON.parse(body)};});
 $('diagRun').onclick=async()=>{
   const out=[];const P=s=>{out.push(s);$('diagOut').textContent=out.join('\n');};
   const L=S.locations.find(l=>l.id===S.sel&&l.lat!=null)||{lat:41.8781,lon:-87.6298,name:'Chicago(fallback)'};
@@ -597,27 +692,27 @@ $('diagRun').onclick=async()=>{
   try{const st=await navigator.permissions.query({name:'geolocation'});P(`geolocation permission: ${st.state==='granted'?'✓':'✗'} ${st.state}`);}
   catch(e){P('geolocation permission: ? unsupported');}
   // API probes
-  try{const[ms,r]=await timed(()=>fetch(`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m`));
+  try{const[ms,r]=await timed(()=>probe(`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m`));
     P(`open-meteo: ${r.ok?'✓':'✗'} ${r.status} · ${ms}ms`);}catch(e){P('open-meteo: ✗ '+e.message);}
   try{const[ms,r]=await timed(()=>suggest('Denver'));P(`geocoding: ${r.length?'✓':'✗'} ${r.length} results · ${ms}ms`);}catch(e){P('geocoding: ✗ '+e.message);}
-  try{const[ms,r]=await timed(()=>fetch(`https://api.weather.gov/alerts/active?point=${L.lat.toFixed(4)},${L.lon.toFixed(4)}`,{headers:{Accept:'application/geo+json'}}));
+  try{const[ms,r]=await timed(()=>probe(`https://api.weather.gov/alerts/active?point=${L.lat.toFixed(4)},${L.lon.toFixed(4)}`,{headers:{Accept:'application/geo+json'}}));
     P(`noaa alerts: ${r.ok?'✓':'✗'} ${r.status} · ${ms}ms`);}catch(e){P('noaa alerts: ✗ '+e.message);}
   // radar freshness — catches the stale-metadata bug
-  try{const[ms,meta]=await timed(async()=>(await fetch('https://api.rainviewer.com/public/weather-maps.json')).json());
+  try{const[ms,meta]=await timed(async()=>(await probe('https://api.rainviewer.com/public/weather-maps.json')).json());
     const past=meta.radar?.past||[];const newest=past.length?past[past.length-1].time:0;
     const age=newest?Math.round((Date.now()/1000-newest)/60):-1;
     P(`rainviewer meta: ${past.length?'✓':'✗'} ${past.length} past frames · newest ${age} min old ${age>25?'✗ STALE':'✓'} · ${ms}ms`);
     if(past.length){const f=past[past.length-1];const{xf,yf}=mercator(L.lat,L.lon,7);
-      const[tms,tr]=await timed(()=>fetch(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
+      const[tms,tr]=await timed(()=>probe(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
       P(`radar tile (past): ${tr.ok?'✓':'✗'} ${tr.status} · ${tms}ms`);}
     const nc=meta.radar?.nowcast||[];
     if(nc.length){const f=nc[0];const{xf,yf}=mercator(L.lat,L.lon,7);
-      const[nms,nr]=await timed(()=>fetch(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
+      const[nms,nr]=await timed(()=>probe(`${meta.host}${f.path}/256/7/${Math.floor(xf)}/${Math.floor(yf)}/4/1_1.png`));
       P(`radar tile (nowcast): ${nr.ok?'✓':'✗'} ${nr.status} · ${nms}ms · path=${f.path.slice(0,40)}`);}
-    else P('radar nowcast: ✗ no nowcast frames in metadata');
+    else P('radar nowcast: not provided by this feed');
   }catch(e){P('rainviewer: ✗ '+e.message);}
   try{const{xf,yf}=mercator(L.lat,L.lon,7);
-    const[ms,r]=await timed(()=>fetch(`https://basemaps.cartocdn.com/dark_all/7/${Math.floor(xf)}/${Math.floor(yf)}.png`));
+    const[ms,r]=await timed(()=>probe(`https://basemaps.cartocdn.com/dark_all/7/${Math.floor(xf)}/${Math.floor(yf)}.png`));
     P(`basemap tile: ${r.ok?'✓':'✗'} ${r.status} · ${ms}ms`);}catch(e){P('basemap: ✗ '+e.message);}
   // app radar state
   P(`radar state: ready=${S.radar.ready} · frames=${S.radar.frames.length} · fail='${S.radar.fail}'`);
@@ -626,6 +721,7 @@ $('diagRun').onclick=async()=>{
     for(const k of ks){const n=(await (await caches.open(k)).keys()).length;P(`cache ${k}: ${n} entries`);}
     if(!ks.length)P('caches: ✗ none (service worker not installed?)');
   }catch(e){P('caches: ✗ '+e.message);}
+  P('recent errors: '+JSON.stringify(Reliability.logs,null,2));
   P('— end of report —');
 };
 // BUG FIX: cover state was computed once at load, so flipping the phone
@@ -642,7 +738,6 @@ function layoutCheck(){
   const wide=w>=600&&hgt>=500;
   const changed=(wide!==S.wide);
   S.wide=wide;
-  if(cover&&S.tab!=='now')S.tab='now';            // compact locks to Now (tabs hidden)
   if(changed||cover){ if(S.wx)render(); }         // re-render across a fold/unfold transition
   return {cover,wide};
 }
@@ -652,7 +747,7 @@ let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(l
 if('serviceWorker' in navigator){
   // ?v= forces the browser to fetch the new worker whenever the version bumps,
   // and the reload below activates it in one relaunch instead of two
-  navigator.serviceWorker.register('sw.js?v='+VERSION).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('sw.js?v='+VERSION).then(r=>r.update()).catch(e=>record('service worker',e));
   let reloaded=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
     if(!reloaded){reloaded=true;location.reload();}
