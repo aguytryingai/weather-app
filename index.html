@@ -20,123 +20,123 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
   padding-top:env(safe-area-inset-top);animation:up .22s ease}
 @keyframes up{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
 .sheet[hidden]{display:none}
-.sheet-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 8px;font-size:17px;font-weight:600}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 8px;font-size:1.0625rem;font-weight:600}
 .loclist{flex:1;overflow-y:auto;padding:6px 12px 18px;scrollbar-width:none}
 .loclist::-webkit-scrollbar{display:none}
 .locrow{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:14px;cursor:pointer;margin-bottom:4px}
 .locrow:active,.locrow.sel{background:var(--card)}
 .locrow .nm{flex:1;min-width:0}
-.locrow .nm b{font-size:15px;font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.locrow .nm span{font-size:11.5px;color:var(--dim)}
-.locrow .wx{font-size:15px;display:flex;align-items:center;gap:7px;color:var(--dim2);flex-shrink:0}
-.locrow .del{background:none;border:none;color:#7E9CBE;font-size:14px;padding:6px 8px;cursor:pointer;flex-shrink:0}
+.locrow .nm b{font-size:0.9375rem;font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.locrow .nm span{font-size:0.71875rem;color:var(--dim)}
+.locrow .wx{font-size:0.9375rem;display:flex;align-items:center;gap:7px;color:var(--dim2);flex-shrink:0}
+.locrow .del{background:none;border:none;color:#7E9CBE;font-size:0.875rem;padding:6px 8px;cursor:pointer;flex-shrink:0}
 .locrow .del:active{color:var(--alert)}
 /* Cover display mode: <380px wide (3.4" screen) */
 .head{padding:14px 18px 6px;display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0}
-.head h1{font-size:17px;font-weight:600;letter-spacing:.01em}
-.head .loc{font-size:13px;color:var(--dim2);margin-top:2px}
+.head h1{font-size:1.0625rem;font-weight:600;letter-spacing:.01em}
+.head .loc{font-size:0.8125rem;color:var(--dim2);margin-top:2px}
 .hbtns{display:flex;gap:8px}
-.icon-btn{background:rgba(255,255,255,.1);border:none;color:#CBDDF2;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px}
+.icon-btn{background:rgba(255,255,255,.1);border:none;color:#CBDDF2;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:0.9375rem}
 .icon-btn:active{background:rgba(255,255,255,.22)}
 #installBtn{display:none;background:var(--blue);color:#fff}
 .searchrow{display:flex;gap:8px;padding:6px 18px;flex-shrink:0}
-.searchrow input{flex:1;padding:9px 14px;border-radius:10px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:14px;outline:none}
+.searchrow input{flex:1;padding:9px 14px;border-radius:10px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:0.875rem;outline:none}
 .searchrow input::placeholder{color:#87A5C6}
-.searchrow button{padding:9px 16px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:14px;cursor:pointer}
+.searchrow button{padding:9px 16px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:0.875rem;cursor:pointer}
 .sugg{margin:0 18px;background:#1E2C42;border-radius:12px;overflow:hidden;flex-shrink:0;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .sugg:empty{display:none}
-.sugg .it{padding:11px 14px;font-size:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sugg .it{padding:11px 14px;font-size:0.875rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06)}
 .sugg .it:last-child{border-bottom:none}
 .sugg .it:active{background:rgba(255,255,255,.08)}
-.sugg .it .sub{font-size:11.5px;color:var(--dim);text-align:right;flex-shrink:0}
-.sugg .none{padding:11px 14px;font-size:12.5px;color:var(--dim)}
-.alert{max-height:30vh;overflow:auto;margin:2px 18px 6px;padding:10px 13px;border-radius:12px;background:rgba(228,87,46,.22);border-left:3px solid var(--alert);font-size:12.5px;line-height:1.45;flex-shrink:0}
-.alert b{display:block;font-size:13px}
+.sugg .it .sub{font-size:0.71875rem;color:var(--dim);text-align:right;flex-shrink:0}
+.sugg .none{padding:11px 14px;font-size:0.78125rem;color:var(--dim)}
+.alert{max-height:30vh;overflow:auto;margin:2px 18px 6px;padding:10px 13px;border-radius:12px;background:rgba(228,87,46,.22);border-left:3px solid var(--alert);font-size:0.78125rem;line-height:1.45;flex-shrink:0}
+.alert b{display:block;font-size:0.8125rem}
 .body{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:8px;scrollbar-width:none}
 .body::-webkit-scrollbar{display:none}
 .hero{text-align:center;padding:16px 18px 10px}
-.hero .ic{font-size:52px}
-.hero .big{font-size:84px;font-weight:300;line-height:1;letter-spacing:-.03em}
-.hero .cond{font-size:18px;color:#C6DAF0;margin-top:4px}
-.hero .feels{font-size:13.5px;color:var(--dim);margin-top:5px}
+.hero .ic{font-size:3.25rem}
+.hero .big{font-size:5.25rem;font-weight:300;line-height:1;letter-spacing:-.03em}
+.hero .cond{font-size:1.125rem;color:#C6DAF0;margin-top:4px}
+.hero .feels{font-size:0.84375rem;color:var(--dim);margin-top:5px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:8px 18px}
 .card{background:var(--card);border-radius:14px;padding:12px 14px}
-.card .k{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
-.card .v{font-size:19px;font-weight:500;margin-top:4px}
-.card .s{font-size:11px;color:var(--dim);margin-top:2px}
-.sect{padding:14px 18px 6px;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.card .k{font-size:0.65625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.card .v{font-size:1.1875rem;font-weight:500;margin-top:4px}
+.card .s{font-size:0.6875rem;color:var(--dim);margin-top:2px}
+.sect{padding:14px 18px 6px;font-size:0.71875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .hstrip{display:flex;gap:9px;overflow-x:auto;padding:4px 18px 10px;scrollbar-width:none}
 .hstrip::-webkit-scrollbar{display:none}
 .hcell{flex-shrink:0;text-align:center;background:var(--card);border-radius:14px;padding:11px 12px;min-width:62px}
-.hcell .t{font-size:11px;color:var(--dim)}
-.hcell .i{font-size:22px;margin:4px 0}
-.hcell .d{font-size:16px;font-weight:500}
-.hcell .p{font-size:10.5px;color:#7FD4FF;margin-top:3px;min-height:13px}
-.day{display:grid;grid-template-columns:52px 30px 34px 1fr 34px;align-items:center;gap:9px;padding:10px 18px;font-size:14.5px}
-.day .lo{color:var(--dim);font-size:13.5px;text-align:right}
+.hcell .t{font-size:0.6875rem;color:var(--dim)}
+.hcell .i{font-size:1.375rem;margin:4px 0}
+.hcell .d{font-size:1rem;font-weight:500}
+.hcell .p{font-size:0.65625rem;color:#7FD4FF;margin-top:3px;min-height:13px}
+.day{display:grid;grid-template-columns:52px 30px 34px 1fr 34px;align-items:center;gap:9px;padding:10px 18px;font-size:0.90625rem}
+.day .lo{color:var(--dim);font-size:0.84375rem;text-align:right}
 .day .hi{text-align:right}
-.day .pp{font-size:10px;color:#7FD4FF}
+.day .pp{font-size:0.625rem;color:#7FD4FF}
 .tbar{height:5px;border-radius:3px;background:rgba(255,255,255,.12);position:relative}
 .tbar i{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#4A90D9,#F2C14E)}
 .radarbox{margin:6px 18px 10px;border-radius:16px;overflow:hidden;position:relative;background:#0b1420;aspect-ratio:1/1}
 .radarbox canvas{width:100%;height:100%;display:block}
 .rhud{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(transparent,rgba(0,0,0,.7))}
-.rhud button{background:rgba(255,255,255,.16);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:13px}
-.rhud .ts{font-size:11px;color:#BFE3FF;flex:1;font-variant-numeric:tabular-nums}
+.rhud button{background:rgba(255,255,255,.16);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:0.8125rem}
+.rhud .ts{font-size:0.6875rem;color:#BFE3FF;flex:1;font-variant-numeric:tabular-nums}
 .rhud input[type=range]{width:110px;accent-color:var(--blue)}
-.rstatus{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:13px;text-align:center;padding:20px}
-.legend{display:flex;gap:2px;align-items:center;margin:0 18px 12px;font-size:10px;color:var(--dim)}
+.rstatus{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:0.8125rem;text-align:center;padding:20px}
+.legend{display:flex;gap:2px;align-items:center;margin:0 18px 12px;font-size:0.625rem;color:var(--dim)}
 .legend i{height:6px;flex:1;display:block}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.1);flex-shrink:0;background:rgba(0,0,0,.28);
   padding-bottom:env(safe-area-inset-bottom)}
-.tabs button{background:none;border:none;color:#7E9CBE;padding:10px 0 11px;font-size:10.5px;cursor:pointer;letter-spacing:.03em}
-.tabs button .ic{display:block;font-size:19px;margin-bottom:3px}
+.tabs button{background:none;border:none;color:#7E9CBE;padding:10px 0 11px;font-size:0.65625rem;cursor:pointer;letter-spacing:.03em}
+.tabs button .ic{display:block;font-size:1.1875rem;margin-bottom:3px}
 .tabs button.on{color:#fff}
-.note{text-align:center;font-size:11px;color:#5E7A9C;padding:8px 18px}
-.loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(175deg,var(--bg1),var(--bg2));z-index:30;font-size:14px;color:#A9C4E2}
+.note{text-align:center;font-size:0.6875rem;color:#5E7A9C;padding:8px 18px}
+.loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(175deg,var(--bg1),var(--bg2));z-index:30;font-size:0.875rem;color:#A9C4E2}
 .spin{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 @keyframes slideL{from{transform:translateX(28px);opacity:.35}}
 @keyframes slideR{from{transform:translateX(-28px);opacity:.35}}
 .recovery{padding:16px;text-align:center;line-height:1.5;color:var(--dim2)}
 .recovery button{margin:8px 4px;padding:10px;border:0;border-radius:8px;cursor:pointer}
-.offline{background:rgba(242,193,78,.15);color:#F2C14E;font-size:11.5px;text-align:center;padding:5px;flex-shrink:0}
+.offline{background:rgba(242,193,78,.15);color:#F2C14E;font-size:0.71875rem;text-align:center;padding:5px;flex-shrink:0}
 /* Cover display (Z Flip 6 front screen, ~277px). Placed LAST: media queries add no
    specificity, so these must come after the base rules to actually win. */
 @media(max-width:339px) and (max-height:419px){
   #app{max-width:100%;padding-top:max(env(safe-area-inset-top),8px)}
   .head{padding:8px 10px 4px;display:flex;flex-direction:column;gap:2px}
-  .head h1{font-size:14px}
-  .head .loc{font-size:11px}
+  .head h1{font-size:0.875rem}
+  .head .loc{font-size:0.6875rem}
   .hbtns{gap:6px}
-  .icon-btn{width:30px;height:30px;font-size:13px}
-  .alert{margin:2px 10px 4px;padding:6px 8px;font-size:11px;max-height:66px;overflow:auto}
-  .sheet-head{padding:10px 12px 6px;font-size:14px}
+  .icon-btn{width:30px;height:30px;font-size:0.8125rem}
+  .alert{margin:2px 10px 4px;padding:6px 8px;font-size:0.6875rem;max-height:66px;overflow:auto}
+  .sheet-head{padding:10px 12px 6px;font-size:0.875rem}
   .locrow{padding:9px 8px}
-  .locrow .nm b{font-size:13px}
+  .locrow .nm b{font-size:0.8125rem}
   .body{padding:6px}
   .hero{padding:8px 10px 6px}
-  .hero .ic{font-size:40px}
-  .hero .big{font-size:56px;letter-spacing:-.02em}
-  .hero .cond{font-size:13px;margin-top:2px}
-  .hero .feels{font-size:11px}
+  .hero .ic{font-size:2.5rem}
+  .hero .big{font-size:3.5rem;letter-spacing:-.02em}
+  .hero .cond{font-size:0.8125rem;margin-top:2px}
+  .hero .feels{font-size:0.6875rem}
   .grid{grid-template-columns:1fr 1fr;gap:6px;padding:6px 10px}
   .card{padding:8px 10px}
-  .card .k{font-size:9px}
-  .card .v{font-size:14px}
-  .sect{padding:8px 10px 4px;font-size:9px}
+  .card .k{font-size:0.5625rem}
+  .card .v{font-size:0.875rem}
+  .sect{padding:8px 10px 4px;font-size:0.5625rem}
   .hstrip{padding:2px 10px 8px;gap:6px}
   .hcell{min-width:48px;padding:7px 8px}
-  .hcell .t{font-size:9px}
-  .hcell .i{font-size:18px;margin:2px 0}
-  .hcell .d{font-size:13px}
-  .hcell .p{font-size:9px}
-  .day{grid-template-columns:40px 24px 28px 1fr 28px;gap:6px;padding:7px 10px;font-size:12px}
-  .day .lo{font-size:11px}
-  .day .pp{font-size:9px}
-  .tabs button{padding:5px 0;font-size:9px}
-  .tabs button .ic{font-size:14px;margin-bottom:1px}
-  .note{font-size:10px;padding:6px 10px}
+  .hcell .t{font-size:0.5625rem}
+  .hcell .i{font-size:1.125rem;margin:2px 0}
+  .hcell .d{font-size:0.8125rem}
+  .hcell .p{font-size:0.5625rem}
+  .day{grid-template-columns:40px 24px 28px 1fr 28px;gap:6px;padding:7px 10px;font-size:0.75rem}
+  .day .lo{font-size:0.6875rem}
+  .day .pp{font-size:0.5625rem}
+  .tabs button{padding:5px 0;font-size:0.5625rem}
+  .tabs button .ic{font-size:0.875rem;margin-bottom:1px}
+  .note{font-size:0.625rem;padding:6px 10px}
 }
 
 /* Wide layouts. Placed LAST in the stylesheet so these overrides actually win.
@@ -146,8 +146,8 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
 @media(min-width:600px) and (min-height:500px){
   #app{max-width:100%}
   .head{padding:14px 22px 6px}
-  .head h1{font-size:19px}
-  .icon-btn{width:38px;height:38px;font-size:16px}
+  .head h1{font-size:1.1875rem}
+  .icon-btn{width:38px;height:38px;font-size:1rem}
   .body{padding:0 8px 12px}
   .dash{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}
   .col{min-width:0}
@@ -162,59 +162,110 @@ body{font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;bac
   .dash{grid-template-columns:1.05fr 1.15fr 1fr;gap:8px}
   .dash .col:nth-child(3){grid-column:auto}
   .hero{padding:6px 14px 4px}
-  .hero .ic{font-size:44px}
-  .hero .big{font-size:78px}
-  .hero .cond{font-size:16px}
-  .hero .feels{font-size:12.5px}
+  .hero .ic{font-size:2.75rem}
+  .hero .big{font-size:4.875rem}
+  .hero .cond{font-size:1rem}
+  .hero .feels{font-size:0.78125rem}
   .grid{gap:7px;padding:6px 14px}
   .card{padding:9px 12px}
-  .card .v{font-size:17px}
+  .card .v{font-size:1.0625rem}
   .sect{padding:8px 14px 4px}
   .hcell{min-width:54px;padding:8px 9px}
-  .day{padding:7px 14px;font-size:13.5px}
+  .day{padding:7px 14px;font-size:0.84375rem}
   .radarbox{width:100%;margin:6px 6px 8px}
   .note{padding:4px 14px}
 }
+
+/* Accessible controls and flexible phone layouts. */
+:root{--dim:#B9D2EC;--dim2:#D6E5F5;--blue:#245C98}
+button,input{font:inherit}
+button,a,input,summary{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid #FFD166;outline-offset:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#app{height:var(--app-height,100dvh);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.head{flex-wrap:wrap;gap:8px;align-items:center}
+.brand{flex:1 1 8rem;min-width:0}
+#locBtn{border:0;background:none;color:var(--dim2);text-align:left;min-height:44px;max-width:100%;padding:4px 0;overflow-wrap:anywhere}
+.hbtns{flex-wrap:wrap;gap:6px}
+.icon-btn,.rhud button{width:44px;height:44px;min-width:44px;min-height:44px;flex-shrink:0}
+.icon-btn{color:#EAF2FB}
+.tabs button{min-height:48px;color:#B9D2EC;font-size:.75rem}
+.tabs button.on{color:#fff;background:rgba(255,255,255,.08)}
+.body,.loclist{min-height:0}
+.note{color:#B9D2EC}
+.searchrow{flex-wrap:wrap;padding:8px 12px}
+.searchrow input{min-width:0;width:100%;flex:1 1 8rem;font-size:1rem;min-height:44px}
+.searchrow input::placeholder{color:#B9D2EC}
+.searchrow button,.recovery button{min-height:44px}
+.sheet{min-height:0;padding-bottom:env(safe-area-inset-bottom)}
+.sheet-head{flex-shrink:0;gap:8px}
+.sugg{max-height:38%;overflow-y:auto;flex-shrink:1;margin:0 12px}
+.sugg .it{width:100%;border:0;background:transparent;color:var(--txt);text-align:left;min-height:44px;flex-wrap:wrap}
+.sugg .it .sub{flex-shrink:1;text-align:left}
+.locrow{padding:4px 6px;gap:4px}
+.locselect{display:flex;align-items:center;gap:8px;flex:1;min-width:0;border:0;background:transparent;color:inherit;text-align:left;padding:8px;min-height:44px}
+.locrow .nm b{white-space:normal;overflow-wrap:anywhere}
+.locrow .del{min-width:44px;min-height:44px;color:#CBDDF2}
+.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr))}
+.card{min-width:0;overflow-wrap:anywhere}
+.day{grid-template-columns:minmax(0,1fr) auto auto minmax(12px,1fr) auto;gap:6px}
+.day>div{min-width:0;overflow-wrap:anywhere}
+.radarbox{max-width:100%}
+.rhud{flex-wrap:wrap;gap:6px;background:rgba(8,20,35,.9)}
+.rhud input[type=range]{min-width:70px;min-height:44px;flex:1;width:90px}
+.rhud .ts{flex:1 1 100%;color:#EAF2FB}
+.alert summary{min-height:44px;cursor:pointer;padding:8px 0}
+#body h2.sect{font-weight:500}
+@media(min-width:600px) and (min-height:500px){.sheet{left:0;right:0;margin:auto;transform:none;width:100%}}
+@media(max-width:339px) and (max-height:419px){
+  .head{padding:4px 10px;gap:2px}.head h1{font-size:.875rem}
+  .brand{flex:auto;width:100%}#locBtn{min-height:44px}.icon-btn{width:44px;height:44px}
+  .tabs button{min-height:44px;font-size:.6875rem}.tabs button .ic{font-size:.875rem}
+  .day{grid-template-columns:minmax(0,1fr) auto auto minmax(8px,1fr) auto;gap:3px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
 </style>
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:11px;color:#5E7A9C">v2.3.1</div></div>
-  <div class="offline" id="offlineBar" style="display:none">Offline — showing last saved forecast</div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:0.6875rem;color:#5E7A9C">v2.4.0</div></div>
+  <div class="offline" id="offlineBar" role="status" aria-live="polite" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
-    <div id="locBtn"><h1>Skyward</h1><div class="loc" id="locName">— ▾</div></div>
+    <div class="brand"><h1>Skyward</h1><button id="locBtn" aria-label="Choose weather location" aria-haspopup="dialog"><span class="loc" id="locName">— ▾</span></button></div>
     <div class="hbtns">
-      <button class="icon-btn" id="installBtn" title="Install app">⬇</button>
-      <button class="icon-btn" id="btnSearch" title="Locations">📍</button>
-      <button class="icon-btn" id="btnRefresh" title="Refresh">⟳</button>
+      <button class="icon-btn" id="installBtn" aria-label="Install Skyward" title="Install app">⬇</button>
+      <button class="icon-btn" id="btnSearch" aria-label="Search locations" title="Locations">📍</button>
+      <button class="icon-btn" id="btnRefresh" aria-label="Refresh weather" title="Refresh">⟳</button>
       <button class="icon-btn" id="btnDiagnostics" title="Diagnostics" aria-label="Diagnostics">?</button>
     </div>
   </div>
   <div id="alertSlot"></div>
-  <div class="body" id="body"></div>
-  <div class="tabs" id="tabs"></div>
-  <div class="sheet" id="sheet" hidden>
-    <div class="sheet-head"><span>Locations</span><button class="icon-btn" id="sheetClose">✕</button></div>
+  <main class="body" id="body" tabindex="-1" aria-label="Weather forecast"></main>
+  <div id="announcer" class="sr-only" role="status" aria-live="polite"></div>
+  <nav class="tabs" id="tabs" aria-label="Weather views"></nav>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="locationsTitle" tabindex="-1" hidden>
+    <div class="sheet-head"><h2 id="locationsTitle" style="font-size:1.0625rem">Locations</h2><button class="icon-btn" id="sheetClose" aria-label="Close locations">✕</button></div>
     <div class="searchrow">
-      <input id="searchInput" placeholder="Search a city…" autocomplete="off">
+      <label for="searchInput" class="sr-only">Search for a city</label><input id="searchInput" aria-controls="suggBox" placeholder="Search a city…" autocomplete="off">
       <button id="searchGo">Add</button>
     </div>
-    <div class="sugg" id="suggBox"></div>
+    <div class="sugg" id="suggBox" role="region" aria-label="City search results"></div>
     <div class="loclist" id="locList"></div>
   </div>
-  <div class="sheet" id="diag" hidden>
-    <div class="sheet-head"><span>Diagnostics</span><button class="icon-btn" id="diagClose">✕</button></div>
+  <div class="sheet" id="diag" role="dialog" aria-modal="true" aria-labelledby="diagnosticsTitle" tabindex="-1" hidden>
+    <div class="sheet-head"><h2 id="diagnosticsTitle" style="font-size:1.0625rem">Diagnostics</h2><button class="icon-btn" id="diagClose" aria-label="Close diagnostics">✕</button></div>
     <div style="display:flex;gap:8px;padding:0 18px 10px">
-      <button id="diagRun" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:14px;cursor:pointer">Run checks</button>
-      <button id="diagCopy" style="flex:1;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;cursor:pointer">Copy report</button>
+      <button id="diagRun" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:0.875rem;cursor:pointer">Run checks</button>
+      <button id="diagCopy" style="flex:1;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:0.875rem;cursor:pointer">Copy report</button>
     </div>
-    <pre id="diagOut" style="flex:1;overflow:auto;margin:0 18px 18px;padding:14px;background:rgba(0,0,0,.35);border-radius:12px;font-size:11.5px;line-height:1.55;white-space:pre-wrap;font-family:ui-monospace,monospace;color:#C9DDF2">Tap “Run checks”, then “Copy report” to share the results. Reports include the selected location.</pre>
+    <pre id="diagOut" style="flex:1;overflow:auto;margin:0 18px 18px;padding:14px;background:rgba(0,0,0,.35);border-radius:12px;font-size:0.71875rem;line-height:1.55;white-space:pre-wrap;font-family:ui-monospace,monospace;color:#C9DDF2">Tap “Run checks”, then “Copy report” to share the results. Reports include the selected location.</pre>
   </div>
 </div>
 
 <script src="reliability.js"></script>
 <script>
-const VERSION='2.3.1';
+const VERSION='2.4.0';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -241,6 +292,10 @@ const S={
   sel:'here',tab:'now',wx:null,alerts:[],wide:false,
   radar:{frames:[],idx:0,playing:true,tiles:{},base:[],ready:false,fail:'',z:7}
 };
+const motionQuery=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+if(motionQuery?.matches)S.radar.playing=false;
+motionQuery?.addEventListener?.('change',e=>{if(e.matches){S.radar.playing=false;render();}});
+S.metrics={started:performance.now(),firstWeatherMs:null};
 const $=id=>document.getElementById(id);
 const {request, escape:esc, display:val, record}=Reliability;
 window.addEventListener('error',e=>record('script',e.error||new Error(e.message)));
@@ -366,7 +421,7 @@ function drawRadar(){
   const ts=$('rts');
   if(ts&&f){const isFc=f.forecast;
     ts.textContent=new Date(f.time*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+(isFc?' · forecast':' · '+Math.max(0,Math.round((Date.now()/1000-f.time)/60))+' min ago')+((R.tiles[f.time]||[]).length<9?' · incomplete':'');}
-  const sl=$('rsl'); if(sl) sl.value=R.idx;
+  const sl=$('rsl'); if(sl){sl.value=R.idx;sl.setAttribute('aria-valuetext',ts?.textContent||'Frame '+(R.idx+1));}
 }
 const radarOnScreen=()=>S.tab==='radar'||S.wide;
 function ensureRadar(){
@@ -384,44 +439,44 @@ const fmtSun=t=>t&&Number.isFinite(Date.parse(t))?new Date(t).toLocaleTimeString
 function secNow(wx,hours){
   const c=wx.current;
   return `
-    <div class="hero"><div class="ic">${c.c.icon}</div><div class="big">${val(c.temp,'°')}</div>
+    <div class="hero"><div class="ic" aria-hidden="true">${c.c.icon}</div><div class="big">${val(c.temp,'°')}</div>
       <div class="cond">${c.c.text}</div>
       <div class="feels">Feels like ${val(c.feels,'°')} · H:${val(wx.daily[0].hi,'°')} L:${val(wx.daily[0].lo,'°')}</div></div>
     <div class="grid">
       <div class="card"><div class="k">Wind</div><div class="v">${val(c.wind,' mph')}</div></div>
       <div class="card"><div class="k">Humidity</div><div class="v">${val(c.hum,'%')}</div></div>
       <div class="card"><div class="k">UV index</div><div class="v">${c.uv===null?'—':c.uv.toFixed(1)}</div><div class="s">${c.uv===null?'Unavailable':c.uv<3?'Low':c.uv<6?'Moderate':c.uv<8?'High':c.uv<11?'Very high':'Extreme'}</div></div>
-      <div class="card"><div class="k">Sun</div><div class="v" style="font-size:14px">↑ ${fmtSun(wx.sunrise)}<br>↓ ${fmtSun(wx.sunset)}</div></div>
+      <div class="card"><div class="k">Sun</div><div class="v" style="font-size:0.875rem">↑ ${fmtSun(wx.sunrise)}<br>↓ ${fmtSun(wx.sunset)}</div></div>
     </div>
-    <div class="sect">Next hours</div>
+    <h2 class="sect">Next hours</h2>
     <div class="hstrip">${wx.hourly.slice(0,hours||12).map(hcell).join('')}</div>`;
 }
-const hcell=h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i">${h.c.icon}</div><div class="d">${val(h.temp,'°')}</div><div class="p">${val(h.p,'%')}</div></div>`;
+const hcell=h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i" role="img" aria-label="${esc(h.c.text)}">${h.c.icon}</div><div class="d">${val(h.temp,'°')}</div><div class="p" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}</div></div>`;
 function secHourly(wx,wrap){
-  return `<div class="sect">24-hour forecast</div>
+  return `<h2 class="sect">24-hour forecast</h2>
     <div class="hstrip"${wrap?' style="flex-wrap:wrap;row-gap:9px"':''}>${wx.hourly.map(hcell).join('')}</div>`;
 }
 function secDaily(wx){
   const lows=wx.daily.map(d=>d.lo).filter(v=>Reliability.number(v)!==null);
   const highs=wx.daily.map(d=>d.hi).filter(v=>Reliability.number(v)!==null);
   const mn=Math.min(...lows),mx=Math.max(...highs),rng=Math.max(1,mx-mn);
-  return `<div class="sect">10-day forecast</div>`+wx.daily.map((d,i)=>{
+  return `<h2 class="sect">10-day forecast</h2>`+wx.daily.map((d,i)=>{
     const valid=Reliability.number(d.lo)!==null&&Reliability.number(d.hi)!==null&&d.hi>=d.lo;
     const left=valid?(d.lo-mn)/rng*100:0,width=valid?Math.min(100-left,Math.max(1,(d.hi-d.lo)/rng*100)):0;
-    return `<div class="day"><div>${i===0?'Today':fmtD(d.t)}<div class="pp">${val(d.p,'%')}</div></div><div>${d.c.icon}</div>
-    <div class="lo">${val(d.lo,'°')}</div>
-    <div class="tbar">${valid?`<i style="left:${left}%;width:${width}%"></i>`:''}</div>
-    <div class="hi">${val(d.hi,'°')}</div></div>`;
+    return `<div class="day"><div>${i===0?'Today':fmtD(d.t)}<div class="pp">${val(d.p,'%')}</div></div><div role="img" aria-label="${esc(d.c.text)}">${d.c.icon}</div>
+    <div class="lo"><span class="sr-only">Low </span>${val(d.lo,'°')}</div>
+    <div class="tbar" aria-hidden="true">${valid?`<i style="left:${left}%;width:${width}%"></i>`:''}</div>
+    <div class="hi"><span class="sr-only">High </span>${val(d.hi,'°')}</div></div>`;
   }).join('');
 }
 function secRadar(){
   const R=S.radar;
-  return `<div class="sect">Precipitation radar</div>
+  return `<h2 class="sect">Precipitation radar</h2>
     <div class="radarbox">
-      <div style="position:absolute;top:0;right:0;z-index:1;background:rgba(255,255,255,.92);color:#172c40;padding:3px 5px;font-size:10px">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">OpenStreetMap contributors</a> · <a href="https://www.rainviewer.com/" target="_blank" rel="noopener" style="color:inherit">RainViewer</a></div>
-      ${R.ready?`<canvas id="rcv" width="512" height="512"></canvas>
-      <div class="rhud"><button id="rpl">${R.playing?'⏸':'▶'}</button>
-      <input type="range" id="rsl" min="0" max="${R.frames.length-1}" value="${R.idx}">
+      <div style="position:absolute;top:0;right:0;z-index:1;background:rgba(255,255,255,.92);color:#172c40;padding:3px 5px;font-size:0.625rem">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">OpenStreetMap contributors</a> · <a href="https://www.rainviewer.com/" target="_blank" rel="noopener" style="color:inherit">RainViewer</a></div>
+      ${R.ready?`<canvas id="rcv" width="512" height="512" role="img" aria-label="Precipitation radar centered on the selected location. Use the timeline for frame times. Radar is a visual map; use the hourly forecast for precipitation probabilities."></canvas>
+      <div class="rhud"><button id="rpl" aria-label="${R.playing?'Pause radar animation':'Play radar animation'}">${R.playing?'⏸':'▶'}</button>
+      <input type="range" id="rsl" aria-label="Radar frame time" min="0" max="${R.frames.length-1}" value="${R.idx}">
       <div class="ts" id="rts"></div></div>`
       :`<div class="rstatus">${R.fail?'Radar unavailable: '+esc(R.fail)+'<br><small>Use Refresh to retry</small>':'Loading radar tiles…'}</div>`}
     </div>
@@ -431,14 +486,15 @@ function secRadar(){
 function wireRadar(){
   const R=S.radar; if(!R.ready||!$('rcv')) return;
   drawRadar();
-  $('rpl').onclick=()=>{R.playing=!R.playing;$('rpl').textContent=R.playing?'⏸':'▶';};
-  $('rsl').oninput=e=>{R.playing=false;$('rpl').textContent='▶';R.idx=+e.target.value;drawRadar();};
+  $('rpl').onclick=()=>{R.playing=!R.playing;$('rpl').textContent=R.playing?'⏸':'▶';$('rpl').setAttribute('aria-label',R.playing?'Pause radar animation':'Play radar animation');};
+  $('rsl').oninput=e=>{R.playing=false;$('rpl').textContent='▶';$('rpl').setAttribute('aria-label','Play radar animation');R.idx=+e.target.value;drawRadar();};
 }
 const footer=wx=>`<div class="note">Retrieved ${new Date(wx.updated).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} · ${Math.max(0,Math.round((Date.now()-wx.updated)/6e4))} min ago${wx.fromCache?' · saved':''}<br>Forecast time ${esc(wx.validAt)} ${esc(wx.timezone)} · v${VERSION}</div>`;
 function renderAlerts(){
-  $('alertSlot').innerHTML=S.alerts.length?`<div class="alert">${S.alerts.map(a=>`<details><summary>⚠ ${esc(a.event)}</summary><p>${esc(a.head)}</p><p style="white-space:pre-wrap">${esc(a.description)}\n${esc(a.instruction)}</p></details>`).join('')}</div>`
+  const markup=S.alerts.length?`<div class="alert">${S.alerts.map(a=>`<details><summary>⚠ ${esc(a.event)}</summary><p>${esc(a.head)}</p><p style="white-space:pre-wrap">${esc(a.description)}\n${esc(a.instruction)}</p></details>`).join('')}</div>`
     :S.alertState==='unavailable'?'<div class="alert">Weather alerts unavailable. Try Refresh.</div>'
     :S.alertState==='loading'?'<div class="note">Checking weather alerts…</div>':'';
+  if(S.alertMarkup!==markup){$('alertSlot').innerHTML=markup;S.alertMarkup=markup;}
 }
 function recovery(message){
   return `<div class="recovery" role="status">${esc(message)}<br><button id="retryWeather">Retry</button><button id="chooseLocation">Choose location</button></div>`;
@@ -448,12 +504,21 @@ function wireRecovery(){
   if($('chooseLocation'))$('chooseLocation').onclick=()=>openSheet(true);
 }
 function render(){
+  const B=$('body'),active=document.activeElement,id=active?.id;
+  const view=S.sel+':'+S.tab+':'+S.wide,sameView=S.lastView===view;
+  const top=B.scrollTop,left=B.scrollLeft,scrolls=Array.from(B.querySelectorAll('.hstrip')).map(e=>e.scrollLeft);
+  renderView();S.lastView=view;
+  if(sameView){B.scrollTop=top;B.scrollLeft=left;B.querySelectorAll('.hstrip').forEach((e,i)=>{e.scrollLeft=scrolls[i]||0;});}
+  if(id&&active&&!active.isConnected){const replacement=$(id);if(replacement)replacement.focus({preventScroll:true});}
+  if(S.wx&&S.metrics.firstWeatherMs===null)S.metrics.firstWeatherMs=performance.now()-S.metrics.started;
+}
+function renderView(){
   const wx=S.wx,B=$('body'),L=S.locations.find(l=>l.id===S.sel);
   $('locName').textContent='📍 '+(wx?.location||L?.name||'Choose location')+' ▾';
   if(!radarOnScreen()&&S.radar.loading)resetRadar();
   renderAlerts();
-  $('offlineBar').style.display=S.error?'block':'none';
-  $('offlineBar').textContent=S.error+(wx?` · Saved ${new Date(wx.updated).toLocaleString()}`:'');
+  $('offlineBar').style.display=S.error||S.busy&&wx?'block':'none';
+  $('offlineBar').textContent=(S.error||(S.busy&&wx?'Updating forecast…':''))+(wx?` · Saved ${new Date(wx.updated).toLocaleString()}`:'');
   if(!wx){
     $('tabs').innerHTML='';
     B.innerHTML=S.busy?recovery('Loading weather…'):recovery(S.error||'Choose a location to get started.');
@@ -475,7 +540,7 @@ function render(){
   }
 
   $('tabs').innerHTML=[['now','🌡️','Now'],['hourly','🕐','Hourly'],['daily','📅','10-Day'],['radar','🛰️','Radar']]
-    .map(([id,ic,lb])=>`<button class="${S.tab===id?'on':''}" data-t="${id}"><span class="ic">${ic}</span>${lb}</button>`).join('');
+    .map(([id,ic,lb])=>`<button id="tab-${id}" aria-current="${S.tab===id?'page':'false'}" class="${S.tab===id?'on':''}" data-t="${id}"><span class="ic" aria-hidden="true">${ic}</span>${lb}</button>`).join('');
   $('tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render();});
 
   if(S.tab==='now')         B.innerHTML=secNow(wx,12)+footer(wx);
@@ -492,17 +557,19 @@ async function loadFor(L,force){
   const controller=new AbortController();loadController=controller;const {signal}=controller;
   const current=()=>token===loadToken&&S.sel===L.id;
   const key=locationKey(L);if(force)mem.delete(key);
-  const saved=store.get('last:'+key,null);
-  S.wx=Reliability.savedWeather(saved,L.lat,L.lon)?{...saved,location:L.name,fromCache:true}:null;
-  S.busy=true;S.error=S.wx?'Refreshing saved forecast…':'';S.alerts=[];S.alertState='loading';
-  resetRadar();$('loading').style.display='none';render();
+  const same=S.wx&&Math.abs(S.wx.lat-L.lat)<.001&&Math.abs(S.wx.lon-L.lon)<.001;
+  const saved=cachedFor(L);
+  if(!same)S.wx=saved?{...saved,location:L.name,fromCache:true}:null;
+  if(saved&&!force&&Date.now()-saved.updated<6e5)cset(key,saved,Math.max(1,6e5-(Date.now()-saved.updated)));
+  S.busy=true;S.error='';if(!same){S.alerts=[];S.alertState='loading';}
+  if(!same||force)resetRadar();$('loading').style.display='none';render();
   // Alerts and radar do not depend on a successful forecast response.
   fetchAlerts(L.lat,L.lon,signal).then(a=>{if(current()){S.alerts=a;S.alertState='ready';renderAlerts();}})
     .catch(e=>{if(current()&&!signal.aborted){S.alertState='unavailable';record('alerts',e);renderAlerts();}});
   try{
     const wx=await fetchWeather(L.lat,L.lon,L.name,signal);
     if(!current())return;
-    S.wx=wx;S.error='';
+    S.wx=wx;S.error='';$('announcer').textContent='Weather ready for '+wx.location;
   }catch(e){
     if(!current()||signal.aborted)return;
     record('forecast',e);S.error=S.wx?'Could not refresh — showing saved forecast':'Could not load weather: '+e.message;
@@ -511,7 +578,7 @@ async function loadFor(L,force){
   }
 }
 async function switchLocation(id){
-  S.sel=id; const L=S.locations.find(l=>l.id===id);
+  S.sel=id;store.set('selected',id); const L=S.locations.find(l=>l.id===id);
   if(L&&L.lat!=null) await loadFor(L);
 }
 function removeLocation(id){
@@ -526,28 +593,51 @@ function removeLocation(id){
 
 /* ================= LOCATIONS SHEET ================= */
 const previewAttempted=new Set();
-function openSheet(focus){previewAttempted.clear();$('sheet').hidden=false;renderLocList();if(focus)$('searchInput').focus();}
-function closeSheet(){$('searchGo').textContent='Add';++suggSeq;clearTimeout(suggTimer);searchController?.abort();$('sheet').hidden=true;$('searchInput').value='';suggList=[];renderSugg();}
+let dialogReturnFocus=null,activeDialog=null;
+const backgroundIds=['body','tabs','alertSlot','offlineBar'];
+function showDialog(id,focusId){
+  dialogReturnFocus=document.activeElement;activeDialog=id;
+  for(const name of ['sheet','diag'])$(name).hidden=name!==id;
+  for(const el of [document.querySelector('.head'),...backgroundIds.map($)].filter(Boolean)){el.inert=true;el.setAttribute('aria-hidden','true');}
+  $(focusId||id).focus();
+}
+function hideDialog(){
+  if(activeDialog)$(activeDialog).hidden=true;activeDialog=null;
+  for(const el of [document.querySelector('.head'),...backgroundIds.map($)].filter(Boolean)){el.inert=false;el.removeAttribute('aria-hidden');}
+  (dialogReturnFocus?.isConnected?dialogReturnFocus:$('locBtn')).focus();
+}
+function openSheet(focus){previewAttempted.clear();$('sheet').hidden=false;renderLocList();showDialog('sheet',focus?'searchInput':'sheetClose');}
+function closeSheet(){$('searchGo').textContent='Add';++suggSeq;clearTimeout(suggTimer);searchController?.abort();$('searchInput').value='';suggList=[];renderSugg();hideDialog();}
 $('locBtn').onclick=()=>openSheet(false);
 $('btnSearch').onclick=()=>openSheet(true);
 $('sheetClose').onclick=closeSheet;
+document.addEventListener('keydown',e=>{
+  if(!activeDialog)return;
+  if(e.key==='Escape'){e.preventDefault();if(activeDialog==='sheet')closeSheet();else hideDialog();return;}
+  if(e.key!=='Tab')return;
+  const items=Array.from($(activeDialog).querySelectorAll('button,input,a[href],[tabindex="0"]')).filter(el=>!el.disabled&&!el.hidden&&getComputedStyle(el).display!=='none');
+  if(!items.length){e.preventDefault();$(activeDialog).focus();return;}
+  const first=items[0],last=items[items.length-1];
+  if(e.shiftKey&&(document.activeElement===first||document.activeElement===$(activeDialog))){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===$(activeDialog))){e.preventDefault();first.focus();}
+});
 
 function renderLocList(){
   if($('sheet').hidden) return;
   $('locList').innerHTML=S.locations.map(l=>{
     const key=l.lat!=null?`wx:${l.lat.toFixed(3)},${l.lon.toFixed(3)}`:null;
     const w=cachedFor(l);
-    const wxCell=l.lat==null?'<span style="font-size:11px">tap to locate</span>'
+    const wxCell=l.lat==null?'<span style="font-size:0.6875rem">tap to locate</span>'
       :w?`<span>${w.current.c.icon}</span><span>${val(w.current.temp,'°')}</span>`:'<span>…</span>';
     return `<div class="locrow ${l.id===S.sel?'sel':''}" data-id="${esc(l.id)}">
-      <div class="nm"><b>${l.isGPS?'◉ ':''}${esc(l.name)}</b><span>${l.isGPS?'Current location':''}</span></div>
-      <div class="wx">${wxCell}</div>
-      ${l.isGPS?'':`<button class="del" data-del="${esc(l.id)}">✕</button>`}</div>`;
+      <button class="locselect" data-id="${esc(l.id)}" aria-label="${l.isGPS?'Update current location':'Show weather for '+esc(l.name)}"><div class="nm"><b>${l.isGPS?'◉ ':''}${esc(l.name)}</b><span>${l.isGPS?'Current location':''}</span></div>
+      <div class="wx" aria-hidden="true">${wxCell}</div></button>
+      ${l.isGPS?'':`<button class="del" aria-label="Remove ${esc(l.name)}" data-del="${esc(l.id)}">✕</button>`}</div>`;
   }).join('');
-  $('locList').querySelectorAll('.locrow').forEach(r=>r.onclick=async e=>{
-    if(e.target.dataset.del){removeLocation(e.target.dataset.del);return;}
+  $('locList').querySelectorAll('.del').forEach(b=>b.onclick=()=>{removeLocation(b.dataset.del);$('sheetClose').focus();});
+  $('locList').querySelectorAll('.locselect').forEach(r=>r.onclick=async e=>{
     const L=S.locations.find(l=>l.id===r.dataset.id);
-    if(L&&L.lat==null&&L.isGPS){closeSheet();boot();return;}   // GPS retry
+    if(L&&L.isGPS){closeSheet();boot();return;}   // GPS retry
     closeSheet(); await switchLocation(r.dataset.id);
   });
   // lazily fill missing temps, then refresh the list once
@@ -561,7 +651,7 @@ let suggList=[],suggTimer=null,suggSeq=0,searchController=null,searchError='';
 function renderSugg(){
   const q=$('searchInput').value.trim();
   $('suggBox').innerHTML=suggList.length
-    ?suggList.map((s,i)=>`<div class="it" data-i="${i}"><span>${esc(s.name)}</span><span class="sub">${esc(s.sub)}</span></div>`).join('')
+    ?suggList.map((s,i)=>`<button class="it" data-i="${i}"><span>${esc(s.name)}</span><span class="sub">${esc(s.sub)}</span></button>`).join('')
     :(q.length>=2?`<div class="none">${searchError?esc(searchError):'No matches — check spelling'}</div>`:'');
   $('suggBox').querySelectorAll('.it').forEach(el=>el.onclick=()=>pickSugg(+el.dataset.i));
 }
@@ -589,7 +679,7 @@ async function searchLocations(q,seq,pick){
   try{
     const found=await suggest(q,controller.signal);
     if(seq!==suggSeq)return;
-    suggList=found;searchError='';renderSugg();
+    suggList=found;searchError='';renderSugg();$('announcer').textContent=found.length+' city results';
     if(pick&&found.length)await pickSugg(0);
   }catch(e){
     if(seq!==suggSeq||controller.signal.aborted)return;
@@ -607,21 +697,25 @@ $('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')addLocation()
 $('btnRefresh').onclick=()=>{const L=S.locations.find(l=>l.id===S.sel);if(L)loadFor(L,true);};
 
 let cancelBoot=null;
-function boot(){
-  cancelBoot?.();++loadToken;loadController?.abort();resetRadar();S.wx=null;S.alerts=[];S.alertState='idle';
+function boot({background=false}={}){
+  cancelBoot?.();
+  if(!background){++loadToken;loadController?.abort();resetRadar();S.wx=null;S.alerts=[];S.alertState='idle';}
+  const anchor=loadToken;
   let active=true,timer=null;
   cancelBoot=()=>{active=false;clearTimeout(timer);};
-  const here=S.locations.find(l=>l.id==='here');S.sel=here.id;
-  $('loading').style.display='none';S.busy=false;S.error='';render();
+  const here=S.locations.find(l=>l.id==='here');
+  if(!background){S.sel=here.id;store.set('selected',here.id);$('loading').style.display='none';S.busy=false;S.error='';render();}
   const fallback=()=>{
     if(!active)return;active=false;clearTimeout(timer);
+    if(background)return;
     if(hasCoordinates(here))loadFor(here);
     else{S.wx=null;S.error='Location unavailable. Choose a city or retry location access.';render();}
   };
   if(!navigator.geolocation){fallback();return;}
   timer=setTimeout(fallback,8500);
   navigator.geolocation.getCurrentPosition(p=>{
-    if(!active)return;active=false;clearTimeout(timer);
+    if(!active||anchor!==loadToken||S.sel!==here.id)return;active=false;clearTimeout(timer);
+    if(background&&hasCoordinates(here)&&Math.abs(here.lat-p.coords.latitude)<.001&&Math.abs(here.lon-p.coords.longitude)<.001)return;
     Object.assign(here,{lat:p.coords.latitude,lon:p.coords.longitude,name:'My Location'});store.set('locs',S.locations);
     loadFor(here);const token=loadToken;
     // Naming is optional and never delays the forecast or recovery controls.
@@ -634,7 +728,15 @@ function boot(){
   },fallback,{timeout:8000,maximumAge:3e5});
 }
 // Boot after all state and handlers are initialized, even when geolocation is unavailable.
-setTimeout(boot,0);
+function startApp(){
+  const id=store.get('selected','here');
+  const selected=S.locations.find(l=>l.id===id)||S.locations.find(l=>l.id==='here');
+  if(hasCoordinates(selected)){
+    S.sel=selected.id;loadFor(selected);
+    if(selected.isGPS)boot({background:true});
+  }else boot();
+}
+setTimeout(startApp,0);
 function refreshSelected(){
   const L=S.locations.find(l=>l.id===S.sel);
   if(hasCoordinates(L)&&!S.busy)loadFor(L,true);
@@ -670,9 +772,9 @@ $('body').addEventListener('touchend',e=>{
 
 /* ================= ON-DEVICE DIAGNOSTICS ================= */
 // Open by tapping the version line in the Now tab footer.
-document.addEventListener('click',e=>{if(e.target.closest('.note')){$('diag').hidden=false;}});
-$('diagClose').onclick=()=>$('diag').hidden=true;
-$('btnDiagnostics').onclick=()=>$('diag').hidden=false;
+// Diagnostics are reachable from the labelled header button.
+$('diagClose').onclick=hideDialog;
+$('btnDiagnostics').onclick=()=>showDialog('diag','diagRun');
 $('diagCopy').onclick=async()=>{
   const t=$('diagOut').textContent;
   try{await navigator.clipboard.writeText(t);$('diagCopy').textContent='Copied ✓';}
@@ -726,6 +828,7 @@ $('diagRun').onclick=async()=>{
     for(const k of ks){const n=(await (await caches.open(k)).keys()).length;P(`cache ${k}: ${n} entries`);}
     if(!ks.length)P('caches: ✗ none (service worker not installed?)');
   }catch(e){P('caches: ✗ '+e.message);}
+  P('first weather rendered: '+(S.metrics.firstWeatherMs===null?'not yet':Math.round(S.metrics.firstWeatherMs)+' ms after script start'));
   P('recent errors: '+JSON.stringify(Reliability.logs,null,2));
   P('— end of report —');
 };
@@ -746,6 +849,12 @@ function layoutCheck(){
   if(changed||cover){ if(S.wx)render(); }         // re-render across a fold/unfold transition
   return {cover,wide};
 }
+function updateViewport(){
+  const v=window.visualViewport;
+  if(!v||v.scale===1)document.documentElement.style.setProperty('--app-height',(v?.height||window.innerHeight)+'px');
+}
+updateViewport();window.visualViewport?.addEventListener('resize',updateViewport);
+window.addEventListener('resize',updateViewport);
 layoutCheck();
 let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(layoutCheck,150);});
 
