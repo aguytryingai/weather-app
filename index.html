@@ -225,6 +225,27 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
+
+/* Forecast-first presentation: compact, consistent, no image downloads. */
+.weather-icon{display:inline-block;width:28px;height:30px;vertical-align:middle;color:#9cddff;flex-shrink:0}
+.hero{display:grid;grid-template-columns:auto auto;justify-content:center;column-gap:16px;text-align:left;padding:16px 18px 8px}
+.hero .ic{grid-row:1/4;align-self:center}.hero .ic .weather-icon{width:64px;height:68px}
+.hero .big{font-size:4rem}.hero .cond{font-size:1rem}.hero .feels{font-size:.8rem}
+.outlook{margin:6px 18px 10px;padding:12px 14px;border-left:3px solid #7fd4ff;background:rgba(127,212,255,.07);border-radius:0 10px 10px 0;color:var(--dim2);font-size:.875rem;line-height:1.5}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.section-note{margin:0 18px 10px;color:var(--dim);font-size:.75rem;line-height:1.5}
+.timeline{list-style:none;margin:0 18px 16px;padding:0}
+.timeline-day{padding:12px 0 6px;color:var(--dim);font-size:.75rem;border-bottom:1px solid #425a73}
+.hour-row{display:grid;grid-template-columns:3.4rem minmax(0,1fr) 2.6rem 3.1rem;align-items:center;gap:8px;min-height:60px;border-bottom:1px solid rgba(185,210,236,.14);font-size:.875rem}
+.hour-row time{color:var(--dim2);font-size:.8rem}.hour-condition{display:flex;align-items:center;gap:9px;min-width:0}.hour-condition span{font-size:.8rem;overflow-wrap:anywhere}.hour-row strong{text-align:right;font-weight:500}.hour-chance{text-align:right;font-size:.8rem;color:#9cddff}
+.chance-track{display:block;height:3px;margin-top:5px;background:#34485f;border-radius:2px}.chance-track i{display:block;height:100%;background:#7fd4ff;border-radius:2px}
+.radarbox{width:auto;aspect-ratio:1/1;margin:6px 18px 8px}.attribution{position:absolute;top:0;right:0;z-index:1;background:#fff;color:#172c40;padding:3px 5px;font-size:.625rem}.attribution a{color:inherit}
+.radar-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 18px}.radar-controls button{min-width:64px;min-height:44px;border:1px solid #7396b9;border-radius:8px;background:#243b55;color:#fff}.radar-controls button:disabled{opacity:.6}.radar-controls input{flex:1;min-width:60px;min-height:44px;accent-color:#7fd4ff}.radar-time,.radar-progress{flex-basis:100%;font-size:.75rem;color:var(--dim2);line-height:1.5}.radar-progress{margin:0}
+.radar-key{display:grid;gap:6px;margin:14px 18px;font-size:.75rem;color:var(--dim2);line-height:1.5}.radar-key small{font-size:.7rem}.radar-key a{color:#9cddff}.snow-scale{height:6px;border-radius:5px;background:linear-gradient(90deg,#bfffff,#7fbfff,#4f8fff,#0f4fff)}.rain-scale{height:9px;border-radius:5px;background:linear-gradient(90deg,#88ddee,#00a3e0,#005588,#ffee00,#ffaa00,#ff4400,#e62800)}
+.wx .weather-icon{width:22px;height:24px}.hcell .i .weather-icon{width:28px;height:30px}
+@media(min-width:600px) and (min-height:500px){.dash .hero .big{font-size:3.5rem}.dash .hero .ic .weather-icon{width:48px;height:52px}.dash .hero{column-gap:10px}.hour-row{gap:5px}.hour-condition{gap:5px}}
+@media(max-width:359px){.hour-row{grid-template-columns:3rem minmax(0,1fr) 2.3rem 2.5rem;gap:5px}.hour-condition{gap:4px}.hour-condition .weather-icon{width:23px}.hero .big{font-size:3.5rem}.hero .ic .weather-icon{width:48px;height:52px}.hero{column-gap:10px}.outlook{font-size:.8rem}}
+
 </style>
 </head>
 <body>
@@ -264,8 +285,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 </div>
 
 <script src="reliability.js"></script>
+<script src="ui.js"></script>
 <script>
-const VERSION='2.4.0';
+const VERSION='2.5.0-rc.1';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -290,7 +312,7 @@ const cset=(k,v,ttl)=>mem.set(k,{v,exp:Date.now()+ttl});
 const S={
   locations:store.get('locs',[{id:'here',name:'My Location',lat:null,lon:null,isGPS:true}]),
   sel:'here',tab:'now',wx:null,alerts:[],wide:false,
-  radar:{frames:[],idx:0,playing:true,tiles:{},base:[],ready:false,fail:'',z:7}
+  radar:{frames:[],idx:0,playing:false,tiles:{},base:[],ready:false,fail:'',z:7}
 };
 const motionQuery=window.matchMedia?.('(prefers-reduced-motion: reduce)');
 if(motionQuery?.matches)S.radar.playing=false;
@@ -366,46 +388,66 @@ function resetRadar(){
 async function loadRadar(lat,lon){
   resetRadar();S.radar.loading=true;
   const tok=radarToken,controller=new AbortController();radarController=controller;
+  const started=performance.now();
   let expired=false;const deadline=setTimeout(()=>{expired=true;controller.abort();},20000);
-  // Every callback writes only into this request's private state.
-  const R={...S.radar,tiles:{},base:[],frames:[]};
+  const R={...S.radar,tiles:{},base:[],frames:[],started};
+  const current=()=>tok===radarToken&&!controller.signal.aborted;
   try{
     const meta=await request('https://api.rainviewer.com/public/weather-maps.json',{signal:controller.signal});
-    const past=Array.isArray(meta.radar?.past)?meta.radar.past:[];
-    const future=Array.isArray(meta.radar?.nowcast)?meta.radar.nowcast:[];
-    R.frames=[...past.slice(-7).map(f=>({...f,forecast:false})),...future.slice(0,3).map(f=>({...f,forecast:true}))]
-      .filter(f=>Number.isFinite(f.time)&&typeof f.path==='string');
-    if(!R.frames.length)throw new Error('No radar frames');
+    const valid=f=>Number.isFinite(f.time)&&typeof f.path==='string';
+    const past=(Array.isArray(meta.radar?.past)?meta.radar.past:[]).filter(valid).slice(-7).map(f=>({...f,forecast:false}));
+    const future=(Array.isArray(meta.radar?.nowcast)?meta.radar.nowcast:[]).filter(valid).slice(0,3).map(f=>({...f,forecast:true}));
+    const frames=[...past,...future],newest=past.at(-1)||future[0];
+    if(!newest)throw new Error('No radar frames');
+    // Only allow the expected HTTPS tile provider, including its subdomains.
+    const host=new URL(meta.host);
+    if(host.protocol!=='https:'||!(host.hostname==='rainviewer.com'||host.hostname.endsWith('.rainviewer.com')))throw new Error('Unexpected radar tile host');
     const z=R.z,{xf,yf}=mercator(Math.max(-85.0511,Math.min(85.0511,lat)),lon,z);R.xf=xf;R.yf=yf;
-    const tx0=Math.floor(xf)-1,ty0=Math.floor(yf)-1,jobs=[];
-    for(let dx=0;dx<3;dx++)for(let dy=0;dy<3;dy++){
-      const tx=tx0+dx,ty=ty0+dy,x=((tx%2**z)+2**z)%2**z;
-      if(ty<0||ty>=2**z)continue;
-      jobs.push(async()=>R.base.push({im:await bmp(`https://tile.openstreetmap.org/${z}/${x}/${ty}.png`,controller.signal),tx,ty}));
-      R.frames.forEach(f=>jobs.push(async()=>{
-        const im=await bmp(`${meta.host}${f.path}/256/${z}/${x}/${ty}/2/1_1.png`,controller.signal);
-        (R.tiles[f.time]??=[]).push({im,tx,ty});
-      }));
+    const cells=[];
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+      const tx=Math.floor(xf)+dx,ty=Math.floor(yf)+dy;
+      if(ty>=0&&ty<2**z)cells.push({tx,ty,x:((tx%2**z)+2**z)%2**z});
     }
-    // Bound concurrent decoding and requests on memory-constrained phones.
-    let cursor=0;
-    await Promise.all(Array.from({length:6},async()=>{
-      while(cursor<jobs.length&&!controller.signal.aborted){
-        const job=jobs[cursor++];try{await job();}catch(e){if(!controller.signal.aborted)R.failedTiles=(R.failedTiles||0)+1;}
+    R.expectedTiles=cells.length;
+    const imageJob=(url,target,cell)=>async()=>{
+      const im=await bmp(url,controller.signal);
+      if(!current()){im.close?.();return;}
+      target.push({im,tx:cell.tx,ty:cell.ty});
+    };
+    const frameJobs=f=>{const target=R.tiles[f.time]=[];return cells.map(c=>imageJob(`${host.origin}${f.path}/256/${z}/${c.x}/${c.ty}/2/1_1.png`,target,c));};
+    const run=async jobs=>{
+      let cursor=0;
+      await Promise.all(Array.from({length:6},async()=>{
+        while(cursor<jobs.length&&current()){
+          try{await jobs[cursor++]();}catch(e){if(current())R.failedTiles=(R.failedTiles||0)+1;}
+        }
+      }));
+    };
+    // Stage one: only the current viewport and newest observation block display.
+    await run([...cells.map(c=>imageJob(`https://tile.openstreetmap.org/${z}/${c.x}/${c.ty}.png`,R.base,c)),...frameJobs(newest)]);
+    if(!current())throw new Error(expired?'Radar loading timed out':'Request cancelled');
+    if(!R.tiles[newest.time].length)throw new Error('Newest radar frame unavailable');
+    R.frames=[newest];R.idx=0;R.ready=true;R.firstFrameMs=Math.round(performance.now()-started);S.radar=R;
+    if(radarOnScreen())render();
+    // Complete older frames on demand; only complete older frames enter history.
+    for(const f of frames.filter(f=>f!==newest)){
+      if(!current()||!radarOnScreen()||document.hidden)break;
+      await run(frameJobs(f));
+      if(!current())break;
+      if(R.tiles[f.time].length===cells.length){
+        const selected=R.frames[R.idx];R.frames.push(f);R.frames.sort((a,b)=>a.time-b.time);R.idx=R.frames.indexOf(selected);
       }
-    }));
-    if(tok!==radarToken){disposeRadar(R);return;}
-    R.frames=R.frames.filter(f=>(R.tiles[f.time]||[]).length>0);
-    if(!R.frames.length)throw new Error(expired?'Radar loading timed out':'Radar tiles could not be loaded');
+    }
+    if(tok!==radarToken)return;
+    R.loading=false;R.fullSequenceMs=Math.round(performance.now()-started);
     if(expired)R.failedTiles=(R.failedTiles||0)+1;
-    const lastPast=R.frames.map(f=>!f.forecast).lastIndexOf(true);
-    R.idx=Math.max(0,lastPast);R.ready=true;R.loading=false;
-    S.radar=R;
+    if(radarOnScreen())render();
   }catch(e){
-    disposeRadar(R);if(tok!==radarToken)return;
-    S.radar.loading=false;S.radar.fail=expired?'Radar loading timed out':e.message||'Unavailable';record('radar',new Error(S.radar.fail));
-  }finally{clearTimeout(deadline);}
-  if(radarOnScreen())render();
+    if(tok!==radarToken){disposeRadar(R);return;}
+    if(R.ready){R.loading=false;R.failedTiles=(R.failedTiles||0)+1;}
+    else{disposeRadar(R);S.radar.loading=false;S.radar.fail=expired?'Radar loading timed out':e.message||'Unavailable';record('radar',new Error(S.radar.fail));}
+    if(radarOnScreen())render();
+  }finally{clearTimeout(deadline);if(tok!==radarToken)disposeRadar(R);}
 }
 function drawRadar(){
   const cv=$('rcv'); if(!cv) return;
@@ -420,50 +462,60 @@ function drawRadar(){
   ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(W/2,W/2,3.5,0,7);ctx.fill();
   const ts=$('rts');
   if(ts&&f){const isFc=f.forecast;
-    ts.textContent=new Date(f.time*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+(isFc?' · forecast':' · '+Math.max(0,Math.round((Date.now()/1000-f.time)/60))+' min ago')+((R.tiles[f.time]||[]).length<9?' · incomplete':'');}
+    ts.textContent=WeatherUI.instant(f.time*1000,S.wx?.timezone)+(isFc?' · forecast':' · '+Math.max(0,Math.round((Date.now()/1000-f.time)/60))+' min ago')+((R.tiles[f.time]||[]).length<(R.expectedTiles||9)?' · incomplete':'')+(Date.now()/1000-Math.max(...R.frames.filter(x=>!x.forecast).map(x=>x.time))>1500?' · latest observation is stale':'');}
   const sl=$('rsl'); if(sl){sl.value=R.idx;sl.setAttribute('aria-valuetext',ts?.textContent||'Frame '+(R.idx+1));}
 }
-const radarOnScreen=()=>S.tab==='radar'||S.wide;
+const radarOnScreen=()=>{
+  if(!(S.tab==='radar'||S.wide))return false;
+  const box=document.querySelector('.radarbox');if(!box)return false;
+  const r=box.getBoundingClientRect(),b=$('body').getBoundingClientRect();
+  return r.bottom>b.top&&r.top<b.bottom&&r.right>b.left&&r.left<b.right;
+};
 function ensureRadar(){
   const L=S.locations.find(l=>l.id===S.sel);
   if(!document.hidden&&radarOnScreen()&&hasCoordinates(L)&&!S.radar.ready&&!S.radar.loading&&!S.radar.fail)loadRadar(L.lat,L.lon);
 }
+$('body').addEventListener('scroll',ensureRadar,{passive:true});
+setInterval(()=>{if(!document.hidden&&S.radar.ready&&radarOnScreen())drawRadar();},30000);
 setInterval(()=>{if(!document.hidden&&S.radar.playing&&S.radar.ready&&radarOnScreen()){S.radar.idx=(S.radar.idx+1)%S.radar.frames.length;drawRadar();}},700);
 
 /* ================= RENDER ================= */
-const fmtH=t=>new Date(t).toLocaleTimeString([],{hour:'numeric'});
+const fmtH=WeatherUI.wallTime;
 const fmtD=t=>new Date(t+'T12:00').toLocaleDateString([],{weekday:'short'});
-const fmtSun=t=>t&&Number.isFinite(Date.parse(t))?new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'—';
+const fmtSun=t=>WeatherUI.wallTime(t,true);
 
 /* --- section builders (composable so wide layouts can show several at once) --- */
 function secNow(wx,hours){
   const c=wx.current;
   return `
-    <div class="hero"><div class="ic" aria-hidden="true">${c.c.icon}</div><div class="big">${val(c.temp,'°')}</div>
+    <div class="hero"><div class="ic" aria-hidden="true">${WeatherUI.icon(c.c)}</div><div class="big">${val(c.temp,'°')}</div>
       <div class="cond">${c.c.text}</div>
       <div class="feels">Feels like ${val(c.feels,'°')} · H:${val(wx.daily[0].hi,'°')} L:${val(wx.daily[0].lo,'°')}</div></div>
+    <p class="outlook">${esc(WeatherUI.summary(wx))}</p>
     <div class="grid">
       <div class="card"><div class="k">Wind</div><div class="v">${val(c.wind,' mph')}</div></div>
       <div class="card"><div class="k">Humidity</div><div class="v">${val(c.hum,'%')}</div></div>
       <div class="card"><div class="k">UV index</div><div class="v">${c.uv===null?'—':c.uv.toFixed(1)}</div><div class="s">${c.uv===null?'Unavailable':c.uv<3?'Low':c.uv<6?'Moderate':c.uv<8?'High':c.uv<11?'Very high':'Extreme'}</div></div>
       <div class="card"><div class="k">Sun</div><div class="v" style="font-size:0.875rem">↑ ${fmtSun(wx.sunrise)}<br>↓ ${fmtSun(wx.sunset)}</div></div>
     </div>
-    <h2 class="sect">Next hours</h2>
-    <div class="hstrip">${wx.hourly.slice(0,hours||12).map(hcell).join('')}</div>`;
+    ${hours===0?'':`<h2 class="sect">Next hours · precipitation chance</h2><div class="hstrip">${wx.hourly.slice(0,hours||6).map(hcell).join('')}</div>`}`;
 }
-const hcell=h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i" role="img" aria-label="${esc(h.c.text)}">${h.c.icon}</div><div class="d">${val(h.temp,'°')}</div><div class="p" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}</div></div>`;
-function secHourly(wx,wrap){
-  return `<h2 class="sect">24-hour forecast</h2>
-    <div class="hstrip"${wrap?' style="flex-wrap:wrap;row-gap:9px"':''}>${wx.hourly.map(hcell).join('')}</div>`;
+const hcell=h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i" role="img" aria-label="${esc(h.c.text)}">${WeatherUI.icon(h.c)}</div><div class="d">${val(h.temp,'°')}</div><div class="p" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}</div></div>`;
+function secHourly(wx){
+  let day='';
+  return `<h2 class="sect">24-hour forecast</h2><p class="section-note">Local time · ${esc(wx.timezone||'selected location')}<br>Temperature · precipitation chance</p><ol class="timeline">`+wx.hourly.map(h=>{
+    const next=h.t.slice(0,10),heading=next!==day?`<li class="timeline-day">${esc(fmtD(next))} · ${esc(next.slice(5))}</li>`:'';day=next;
+    return heading+`<li class="hour-row"><time datetime="${esc(h.t)}">${fmtH(h.t)}</time><span class="hour-condition">${WeatherUI.icon(h.c)}<span>${esc(h.c.text)}</span></span><strong>${val(h.temp,'°')}</strong><span class="hour-chance" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}<span class="chance-track" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,h.p||0))}%"></i></span></span></li>`;
+  }).join('')+'</ol>';
 }
 function secDaily(wx){
   const lows=wx.daily.map(d=>d.lo).filter(v=>Reliability.number(v)!==null);
   const highs=wx.daily.map(d=>d.hi).filter(v=>Reliability.number(v)!==null);
   const mn=Math.min(...lows),mx=Math.max(...highs),rng=Math.max(1,mx-mn);
-  return `<h2 class="sect">10-day forecast</h2>`+wx.daily.map((d,i)=>{
+  return `<h2 class="sect">10-day forecast</h2><p class="section-note">Precipitation chance · low / high</p>`+wx.daily.map((d,i)=>{
     const valid=Reliability.number(d.lo)!==null&&Reliability.number(d.hi)!==null&&d.hi>=d.lo;
     const left=valid?(d.lo-mn)/rng*100:0,width=valid?Math.min(100-left,Math.max(1,(d.hi-d.lo)/rng*100)):0;
-    return `<div class="day"><div>${i===0?'Today':fmtD(d.t)}<div class="pp">${val(d.p,'%')}</div></div><div role="img" aria-label="${esc(d.c.text)}">${d.c.icon}</div>
+    return `<div class="day"><div>${i===0?'Today':fmtD(d.t)}<div class="pp">${val(d.p,'%')}</div></div><div role="img" aria-label="${esc(d.c.text)}">${WeatherUI.icon(d.c)}</div>
     <div class="lo"><span class="sr-only">Low </span>${val(d.lo,'°')}</div>
     <div class="tbar" aria-hidden="true">${valid?`<i style="left:${left}%;width:${width}%"></i>`:''}</div>
     <div class="hi"><span class="sr-only">High </span>${val(d.hi,'°')}</div></div>`;
@@ -472,24 +524,19 @@ function secDaily(wx){
 function secRadar(){
   const R=S.radar;
   return `<h2 class="sect">Precipitation radar</h2>
-    <div class="radarbox">
-      <div style="position:absolute;top:0;right:0;z-index:1;background:rgba(255,255,255,.92);color:#172c40;padding:3px 5px;font-size:0.625rem">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">OpenStreetMap contributors</a> · <a href="https://www.rainviewer.com/" target="_blank" rel="noopener" style="color:inherit">RainViewer</a></div>
-      ${R.ready?`<canvas id="rcv" width="512" height="512" role="img" aria-label="Precipitation radar centered on the selected location. Use the timeline for frame times. Radar is a visual map; use the hourly forecast for precipitation probabilities."></canvas>
-      <div class="rhud"><button id="rpl" aria-label="${R.playing?'Pause radar animation':'Play radar animation'}">${R.playing?'⏸':'▶'}</button>
-      <input type="range" id="rsl" aria-label="Radar frame time" min="0" max="${R.frames.length-1}" value="${R.idx}">
-      <div class="ts" id="rts"></div></div>`
-      :`<div class="rstatus">${R.fail?'Radar unavailable: '+esc(R.fail)+'<br><small>Use Refresh to retry</small>':'Loading radar tiles…'}</div>`}
-    </div>
-    ${R.failedTiles?`<div class="note">Some map tiles are missing. Refresh to retry.</div>`:''}
-    ${R.ready?`<div class="legend"><a href="https://www.rainviewer.com/api/color-schemes.html" target="_blank" rel="noopener" style="color:var(--dim2)">Radar rain/snow color key</a></div>`:''}`;
+    <div class="radarbox"><div class="attribution">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> · <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a></div>
+    ${R.ready?'<canvas id="rcv" width="512" height="512" role="img" aria-label="Precipitation radar around the selected location. Use the hourly forecast for precipitation probabilities."></canvas>':`<div class="rstatus" role="status">${R.fail?'Radar unavailable: '+esc(R.fail)+'<br>Use Refresh to retry.':'Loading newest radar frame…'}</div>`}</div>
+    ${R.ready?`<div class="radar-controls"><button id="rpl" ${R.frames.length<2?'disabled':''} aria-label="${R.playing?'Pause radar animation':'Play radar animation'}">${R.playing?'Pause':'Play'}</button><label for="rsl" class="sr-only">Radar frame time</label><input type="range" id="rsl" min="0" max="${Math.max(0,R.frames.length-1)}" value="${R.idx}" ${R.frames.length<2?'disabled':''}><div id="rts" class="radar-time"></div><p class="radar-progress" role="status">${R.loading?'Newest frame ready · loading history…':R.frames.length+' frames available'}${R.failedTiles||R.base.length<(R.expectedTiles||9)?' · Some map tiles are missing. Refresh to retry.':''}</p></div>`:''}
+    <div class="radar-key"><span>Rain intensity · weaker → stronger</span><div class="rain-scale" aria-hidden="true"></div><span>Rain: blue → yellow → orange / red.</span><span>Snow: pale blue → deeper blue.</span><div class="snow-scale" aria-hidden="true"></div><small>Radar reflectivity, not rain probability. <a href="https://www.rainviewer.com/api/color-schemes.html" target="_blank" rel="noopener">Full color key</a></small></div>`;
 }
 function wireRadar(){
-  const R=S.radar; if(!R.ready||!$('rcv')) return;
+  const R=S.radar;if(!R.ready||!$('rcv'))return;
   drawRadar();
-  $('rpl').onclick=()=>{R.playing=!R.playing;$('rpl').textContent=R.playing?'⏸':'▶';$('rpl').setAttribute('aria-label',R.playing?'Pause radar animation':'Play radar animation');};
-  $('rsl').oninput=e=>{R.playing=false;$('rpl').textContent='▶';$('rpl').setAttribute('aria-label','Play radar animation');R.idx=+e.target.value;drawRadar();};
+  const pauseLabel=()=>{$('rpl').textContent=R.playing?'Pause':'Play';$('rpl').setAttribute('aria-label',R.playing?'Pause radar animation':'Play radar animation');};
+  $('rpl').onclick=()=>{R.playing=!R.playing;pauseLabel();};
+  $('rsl').oninput=e=>{R.playing=false;pauseLabel();R.idx=+e.target.value;drawRadar();};
 }
-const footer=wx=>`<div class="note">Retrieved ${new Date(wx.updated).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} · ${Math.max(0,Math.round((Date.now()-wx.updated)/6e4))} min ago${wx.fromCache?' · saved':''}<br>Forecast time ${esc(wx.validAt)} ${esc(wx.timezone)} · v${VERSION}</div>`;
+const footer=wx=>`<div class="note">${wx.fromCache?'Saved forecast':'Updated'} · ${Math.max(0,Math.round((Date.now()-wx.updated)/6e4))} min ago<br>Forecast ${esc(wx.validAt.slice(0,10))}, ${WeatherUI.wallTime(wx.validAt,true)} · ${esc(wx.timezone||'local time')}</div>`;
 function renderAlerts(){
   const markup=S.alerts.length?`<div class="alert">${S.alerts.map(a=>`<details><summary>⚠ ${esc(a.event)}</summary><p>${esc(a.head)}</p><p style="white-space:pre-wrap">${esc(a.description)}\n${esc(a.instruction)}</p></details>`).join('')}</div>`
     :S.alertState==='unavailable'?'<div class="alert">Weather alerts unavailable. Try Refresh.</div>'
@@ -518,24 +565,22 @@ function renderView(){
   if(!radarOnScreen()&&S.radar.loading)resetRadar();
   renderAlerts();
   $('offlineBar').style.display=S.error||S.busy&&wx?'block':'none';
-  $('offlineBar').textContent=(S.error||(S.busy&&wx?'Updating forecast…':''))+(wx?` · Saved ${new Date(wx.updated).toLocaleString()}`:'');
+  $('offlineBar').textContent=(S.error||(S.busy&&wx?'Updating forecast…':''))+(wx?` · Saved ${WeatherUI.instant(wx.updated,wx.timezone,true)}`:'');
   if(!wx){
     $('tabs').innerHTML='';
     B.innerHTML=S.busy?recovery('Loading weather…'):recovery(S.error||'Choose a location to get started.');
     wireRecovery();return;
   }
 
-  ensureRadar();
-
   // WIDE (Fold inner display, ~600px+): no tabs — everything visible at once in two columns
   if(S.wide){
     $('tabs').innerHTML='';
     B.innerHTML=`<div class="dash">
-        <div class="col">${secNow(wx,12)}${footer(wx)}</div>
-        <div class="col">${secHourly(wx,true)}${secDaily(wx)}</div>
+        <div class="col">${secNow(wx,0)}${secDaily(wx)}${footer(wx)}</div>
+        <div class="col">${secHourly(wx,true)}</div>
         <div class="col">${secRadar()}</div>
       </div>`;
-    wireRadar();
+    wireRadar();ensureRadar();
     return;
   }
 
@@ -546,7 +591,7 @@ function renderView(){
   if(S.tab==='now')         B.innerHTML=secNow(wx,12)+footer(wx);
   else if(S.tab==='hourly') B.innerHTML=secHourly(wx,true);
   else if(S.tab==='daily')  B.innerHTML=secDaily(wx);
-  else if(S.tab==='radar'){ B.innerHTML=secRadar(); wireRadar(); }
+  else if(S.tab==='radar'){ B.innerHTML=secRadar(); wireRadar();ensureRadar(); }
 }
 
 /* ================= FLOW ================= */
@@ -628,7 +673,7 @@ function renderLocList(){
     const key=l.lat!=null?`wx:${l.lat.toFixed(3)},${l.lon.toFixed(3)}`:null;
     const w=cachedFor(l);
     const wxCell=l.lat==null?'<span style="font-size:0.6875rem">tap to locate</span>'
-      :w?`<span>${w.current.c.icon}</span><span>${val(w.current.temp,'°')}</span>`:'<span>…</span>';
+      :w?`<span>${WeatherUI.icon(w.current.c)}</span><span>${val(w.current.temp,'°')}</span>`:'<span>…</span>';
     return `<div class="locrow ${l.id===S.sel?'sel':''}" data-id="${esc(l.id)}">
       <button class="locselect" data-id="${esc(l.id)}" aria-label="${l.isGPS?'Update current location':'Show weather for '+esc(l.name)}"><div class="nm"><b>${l.isGPS?'◉ ':''}${esc(l.name)}</b><span>${l.isGPS?'Current location':''}</span></div>
       <div class="wx" aria-hidden="true">${wxCell}</div></button>
@@ -823,6 +868,7 @@ $('diagRun').onclick=async()=>{
   P(`basemap: OpenStreetMap · ${S.radar.base.length} loaded tiles · requested only while radar is visible`);
   // app radar state
   P(`radar state: ready=${S.radar.ready} · frames=${S.radar.frames.length} · fail='${S.radar.fail}'`);
+  P(`radar timing: first frame ${S.radar.firstFrameMs??'—'} ms · sequence ${S.radar.fullSequenceMs??'—'} ms (since radar request; local only)`);
   // caches
   try{const ks=(await caches.keys()).filter(k=>k.startsWith('skyward'));
     for(const k of ks){const n=(await (await caches.open(k)).keys()).length;P(`cache ${k}: ${n} entries`);}
