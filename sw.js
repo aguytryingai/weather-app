@@ -1,4 +1,4 @@
-const VERSION = '2.5.0-rc.1';
+const VERSION = '2.5.1-rc.1';
 const SHELL_CACHE = 'skyward-shell-' + VERSION;
 const TILE_CACHE = 'skyward-tiles-' + VERSION;
 const SHELL = ['./', './index.html', './reliability.js', './ui.js', './manifest.json', './icon-192.png', './icon-512.png'];

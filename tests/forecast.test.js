@@ -71,13 +71,37 @@ test('radar gate excludes phone forecast tabs and hidden documents',()=>{
  ctx.ensureRadar();assert.equal(ctx.loads,0);ctx.S.tab='radar';ctx.ensureRadar();assert.equal(ctx.loads,1);ctx.document.hidden=true;ctx.ensureRadar();assert.equal(ctx.loads,1);ctx.document.hidden=false;ctx.S.wide=true;ctx.document.querySelector=()=>({getBoundingClientRect:()=>({top:900,bottom:1200,left:0,right:300})});ctx.ensureRadar();assert.equal(ctx.loads,1);
 });
 test('worker install caches all helpers; activation only removes superseded Skyward caches',async()=>{
- const handlers={},deleted=[],added=[];const ctx={self:{addEventListener:(n,fn)=>handlers[n]=fn,skipWaiting:async()=>{},clients:{claim:async()=>{}}},caches:{open:async()=>({addAll:async x=>added.push(...x)}),keys:async()=>['unrelated','skyward-shell-2.4.0','skyward-tiles-2.4.0','skyward-shell-2.5.0-rc.1'],delete:async k=>deleted.push(k)}};
+ const handlers={},deleted=[],added=[];const ctx={self:{addEventListener:(n,fn)=>handlers[n]=fn,skipWaiting:async()=>{},clients:{claim:async()=>{}}},caches:{open:async()=>({addAll:async x=>added.push(...x)}),keys:async()=>['unrelated','skyward-shell-2.4.0','skyward-tiles-2.4.0','skyward-shell-2.5.0-rc.1','skyward-shell-'+html.match(/VERSION='(.*?)'/)[1],'skyward-tiles-'+html.match(/VERSION='(.*?)'/)[1]],delete:async k=>deleted.push(k)}};
  vm.createContext(ctx);vm.runInContext(fs.readFileSync(require.resolve('../sw.js'),'utf8'),ctx);let work;handlers.install({waitUntil:p=>work=p});await work;assert.ok(added.includes('./ui.js'));
- handlers.activate({waitUntil:p=>work=p});await work;assert.deepEqual(deleted,['skyward-shell-2.4.0','skyward-tiles-2.4.0']);
+ handlers.activate({waitUntil:p=>work=p});await work;assert.deepEqual(deleted,['skyward-shell-2.4.0','skyward-tiles-2.4.0','skyward-shell-2.5.0-rc.1']);
 });
 test('worker serves cached shell offline and leaves weather API freshness to app',async()=>{
  const handlers={},cached={body:'shell'};const ctx={URL,location:{origin:'https://example.test'},self:{addEventListener:(n,fn)=>handlers[n]=fn},caches:{open:async()=>({match:async()=>cached})},fetch:async()=>{throw new Error('offline')}};
  vm.createContext(ctx);vm.runInContext(fs.readFileSync(require.resolve('../sw.js'),'utf8'),ctx);let work;
  handlers.fetch({request:{method:'GET',url:'https://example.test/index.html'},respondWith:p=>work=p});assert.equal(await work,cached);
  let handled=false;handlers.fetch({request:{method:'GET',url:'https://api.open-meteo.com/v1/forecast'},respondWith:()=>handled=true});assert.equal(handled,false);
+});
+
+test('city calendar dates survive device timezone and year rollover',()=>{
+ const original=process.env.TZ;
+ try{
+  for(const zone of ['America/Los_Angeles','Asia/Tokyo','Pacific/Kiritimati']){
+   process.env.TZ=zone;
+   for(const date of ['2026-12-31','2027-01-01','2026-10-05']){
+    const expected=new Intl.DateTimeFormat([], {weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));
+    assert.equal(UI.calendarDate(date),expected);
+   }
+  }
+  assert.equal(UI.calendarDate('2026-02-30'),'—');assert.equal(UI.calendarDate(null),'—');
+ }finally{if(original===undefined)delete process.env.TZ;else process.env.TZ=original;}
+});
+test('forecast drill-in navigates repeatedly and transfers focus to the exact hour or section',()=>{
+ const calls=[],target={focus:o=>calls.push(['focus',o]),scrollIntoView:o=>calls.push(['scroll',o])};
+ const ctx={S:{wx:{},tab:'now',wide:false},$:id=>{calls.push(['target',id]);return target;},render:()=>calls.push(['render',ctx.S.tab])};
+ vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('function openForecast('),html.indexOf('function render(){')),ctx);
+ for(const wide of [false,true]){ctx.S.wide=wide;for(let i=0;i<3;i++){
+  ctx.openForecast('hourly','2027-01-01T00:00');assert.equal(ctx.S.tab,'hourly');assert.ok(calls.some(c=>c[0]==='target'&&c[1]==='hour-2027-01-01T00:00'));
+  ctx.openForecast('daily');assert.equal(ctx.S.tab,'daily');assert.equal(calls.at(-3)[1],'daily-heading');assert.equal(calls.at(-2)[0],'focus');assert.equal(calls.at(-1)[1].behavior,'instant');
+ }}
+ const before=calls.length;ctx.openForecast('radar');assert.equal(calls.length,before);ctx.S.wx=null;ctx.openForecast('hourly');assert.equal(calls.length,before);
 });

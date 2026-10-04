@@ -10,6 +10,14 @@ const WeatherUI = (() => {
     try{return new Intl.DateTimeFormat([], {timeZone:timezone||'UTC',hour:'numeric',minute:'2-digit',timeZoneName:'short',...(date?{month:'short',day:'numeric'}:{})}).format(new Date(value));}
     catch{return new Intl.DateTimeFormat([], {timeZone:'UTC',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(value));}
   }
+  // API date-only values already describe the selected city's calendar day.
+  // Anchor in UTC for formatting so the device timezone cannot shift that day.
+  function calendarDate(value, options={weekday:'short',month:'short',day:'numeric'}) {
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return '—';
+    const date=new Date(value+'T12:00:00Z');
+    if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==value)return '—';
+    return new Intl.DateTimeFormat([], {...options,timeZone:'UTC'}).format(date);
+  }
   function summary(wx){
     const hours=wx.hourly.slice(0,6),temps=hours.map(h=>h.temp).filter(finite),chances=hours.map(h=>h.p).filter(finite);
     if(!temps.length&&!chances.length)return 'Hourly outlook unavailable.';
@@ -31,6 +39,6 @@ const WeatherUI = (() => {
     else if(t==='—'||!t)body='<path d="M8 9a4 4 0 1 1 6 3c-2 1-2 2-2 3m0 4v.1"/>';
     return `<svg class="weather-icon" viewBox="0 0 24 26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`;
   }
-  return {wallTime,instant,summary,icon};
+  return {wallTime,instant,calendarDate,summary,icon};
 })();
 if(typeof module!=='undefined')module.exports=WeatherUI;

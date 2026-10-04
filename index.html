@@ -233,6 +233,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 .hero .big{font-size:4rem}.hero .cond{font-size:1rem}.hero .feels{font-size:.8rem}
 .outlook{margin:6px 18px 10px;padding:12px 14px;border-left:3px solid #7fd4ff;background:rgba(127,212,255,.07);border-radius:0 10px 10px 0;color:var(--dim2);font-size:.875rem;line-height:1.5}
 .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+button.outlook{display:block;width:calc(100% - 36px);text-align:left;border:0;border-left:3px solid #7fd4ff;font-family:inherit;cursor:pointer}
+.forecast-hint{display:block;font-size:.75rem;color:#9cddff;margin-top:4px;text-decoration:underline;text-underline-offset:3px}
+button.hcell{border:1px solid #526d89;color:inherit;font-family:inherit;cursor:pointer;min-height:44px}
+button.hcell>span{display:block}
+.detail-link{display:block;background:none;border:0;color:#9cddff;font:inherit;text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:4px 0;cursor:pointer;text-align:left}
+[data-forecast]:focus-visible{outline:3px solid #7fd4ff;outline-offset:3px}
+.day-date{display:block;font-size:.7rem;color:var(--dim2);line-height:1.5}
 .section-note{margin:0 18px 10px;color:var(--dim);font-size:.75rem;line-height:1.5}
 .timeline{list-style:none;margin:0 18px 16px;padding:0}
 .timeline-day{padding:12px 0 6px;color:var(--dim);font-size:.75rem;border-bottom:1px solid #425a73}
@@ -287,7 +294,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 <script src="reliability.js"></script>
 <script src="ui.js"></script>
 <script>
-const VERSION='2.5.0-rc.1';
+const VERSION='2.5.1-rc.1';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -481,7 +488,7 @@ setInterval(()=>{if(!document.hidden&&S.radar.playing&&S.radar.ready&&radarOnScr
 
 /* ================= RENDER ================= */
 const fmtH=WeatherUI.wallTime;
-const fmtD=t=>new Date(t+'T12:00').toLocaleDateString([],{weekday:'short'});
+const fmtD=t=>WeatherUI.calendarDate(t,{weekday:'short'});
 const fmtSun=t=>WeatherUI.wallTime(t,true);
 
 /* --- section builders (composable so wide layouts can show several at once) --- */
@@ -490,8 +497,8 @@ function secNow(wx,hours){
   return `
     <div class="hero"><div class="ic" aria-hidden="true">${WeatherUI.icon(c.c)}</div><div class="big">${val(c.temp,'°')}</div>
       <div class="cond">${c.c.text}</div>
-      <div class="feels">Feels like ${val(c.feels,'°')} · H:${val(wx.daily[0].hi,'°')} L:${val(wx.daily[0].lo,'°')}</div></div>
-    <p class="outlook">${esc(WeatherUI.summary(wx))}</p>
+      <div class="feels">Feels like ${val(c.feels,'°')}<button type="button" class="detail-link" data-forecast="daily" aria-label="High ${val(wx.daily[0].hi,' degrees')}, low ${val(wx.daily[0].lo,' degrees')}. View 10-day forecast">H:${val(wx.daily[0].hi,'°')} L:${val(wx.daily[0].lo,'°')} · 10 days →</button></div></div>
+    <button type="button" class="outlook" data-forecast="hourly">${esc(WeatherUI.summary(wx))}<span class="forecast-hint">View hourly forecast →</span></button>
     <div class="grid">
       <div class="card"><div class="k">Wind</div><div class="v">${val(c.wind,' mph')}</div></div>
       <div class="card"><div class="k">Humidity</div><div class="v">${val(c.hum,'%')}</div></div>
@@ -500,22 +507,22 @@ function secNow(wx,hours){
     </div>
     ${hours===0?'':`<h2 class="sect">Next hours · precipitation chance</h2><div class="hstrip">${wx.hourly.slice(0,hours||6).map(hcell).join('')}</div>`}`;
 }
-const hcell=h=>`<div class="hcell"><div class="t">${fmtH(h.t)}</div><div class="i" role="img" aria-label="${esc(h.c.text)}">${WeatherUI.icon(h.c)}</div><div class="d">${val(h.temp,'°')}</div><div class="p" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}</div></div>`;
+const hcell=h=>`<button type="button" class="hcell" data-forecast="hourly" data-hour="${esc(h.t)}" aria-label="${esc(WeatherUI.calendarDate(h.t.slice(0,10)))} ${fmtH(h.t)}, ${esc(h.c.text)}, ${val(h.temp,' degrees')}, precipitation chance ${h.p===null?'unavailable':h.p+' percent'}. View hourly details"><span class="t">${fmtH(h.t)}</span><span class="i" aria-hidden="true">${WeatherUI.icon(h.c)}</span><span class="d">${val(h.temp,'°')}</span><span class="p">${val(h.p,'%')}</span><span class="forecast-hint" aria-hidden="true">Details →</span></button>`;
 function secHourly(wx){
   let day='';
-  return `<h2 class="sect">24-hour forecast</h2><p class="section-note">Local time · ${esc(wx.timezone||'selected location')}<br>Temperature · precipitation chance</p><ol class="timeline">`+wx.hourly.map(h=>{
+  return `<h2 class="sect" id="hourly-heading" tabindex="-1">24-hour forecast</h2><p class="section-note">Local time · ${esc(wx.timezone||'selected location')}<br>Temperature · precipitation chance</p><ol class="timeline">`+wx.hourly.map(h=>{
     const next=h.t.slice(0,10),heading=next!==day?`<li class="timeline-day">${esc(fmtD(next))} · ${esc(next.slice(5))}</li>`:'';day=next;
-    return heading+`<li class="hour-row"><time datetime="${esc(h.t)}">${fmtH(h.t)}</time><span class="hour-condition">${WeatherUI.icon(h.c)}<span>${esc(h.c.text)}</span></span><strong>${val(h.temp,'°')}</strong><span class="hour-chance" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}<span class="chance-track" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,h.p||0))}%"></i></span></span></li>`;
+    return heading+`<li class="hour-row" id="hour-${esc(h.t)}" tabindex="-1"><time datetime="${esc(h.t)}">${fmtH(h.t)}</time><span class="hour-condition">${WeatherUI.icon(h.c)}<span>${esc(h.c.text)}</span></span><strong>${val(h.temp,'°')}</strong><span class="hour-chance" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}<span class="chance-track" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,h.p||0))}%"></i></span></span></li>`;
   }).join('')+'</ol>';
 }
 function secDaily(wx){
   const lows=wx.daily.map(d=>d.lo).filter(v=>Reliability.number(v)!==null);
   const highs=wx.daily.map(d=>d.hi).filter(v=>Reliability.number(v)!==null);
   const mn=Math.min(...lows),mx=Math.max(...highs),rng=Math.max(1,mx-mn);
-  return `<h2 class="sect">10-day forecast</h2><p class="section-note">Precipitation chance · low / high</p>`+wx.daily.map((d,i)=>{
+  return `<h2 class="sect" id="daily-heading" tabindex="-1">10-day forecast</h2><p class="section-note">Precipitation chance · low / high</p>`+wx.daily.map(d=>{
     const valid=Reliability.number(d.lo)!==null&&Reliability.number(d.hi)!==null&&d.hi>=d.lo;
     const left=valid?(d.lo-mn)/rng*100:0,width=valid?Math.min(100-left,Math.max(1,(d.hi-d.lo)/rng*100)):0;
-    return `<div class="day"><div>${i===0?'Today':fmtD(d.t)}<div class="pp">${val(d.p,'%')}</div></div><div role="img" aria-label="${esc(d.c.text)}">${WeatherUI.icon(d.c)}</div>
+    return `<div class="day"><div><time datetime="${esc(d.t)}">${fmtD(d.t)}<span class="day-date">${esc(WeatherUI.calendarDate(d.t,{month:'short',day:'numeric'}))}</span></time><div class="pp">${val(d.p,'%')}</div></div><div role="img" aria-label="${esc(d.c.text)}">${WeatherUI.icon(d.c)}</div>
     <div class="lo"><span class="sr-only">Low </span>${val(d.lo,'°')}</div>
     <div class="tbar" aria-hidden="true">${valid?`<i style="left:${left}%;width:${width}%"></i>`:''}</div>
     <div class="hi"><span class="sr-only">High </span>${val(d.hi,'°')}</div></div>`;
@@ -550,11 +557,19 @@ function wireRecovery(){
   if($('retryWeather'))$('retryWeather').onclick=()=>{const L=S.locations.find(l=>l.id===S.sel);if(hasCoordinates(L))loadFor(L,true);else boot();};
   if($('chooseLocation'))$('chooseLocation').onclick=()=>openSheet(true);
 }
+function openForecast(tab,hour){
+  if(!['hourly','daily'].includes(tab)||!S.wx)return;
+  S.tab=tab;render();
+  const target=(hour&&$('hour-'+hour))||$(tab+'-heading');
+  target?.focus({preventScroll:true});
+  target?.scrollIntoView({block:'start',behavior:'instant'});
+}
 function render(){
   const B=$('body'),active=document.activeElement,id=active?.id;
   const view=S.sel+':'+S.tab+':'+S.wide,sameView=S.lastView===view;
   const top=B.scrollTop,left=B.scrollLeft,scrolls=Array.from(B.querySelectorAll('.hstrip')).map(e=>e.scrollLeft);
   renderView();S.lastView=view;
+  B.querySelectorAll('[data-forecast]').forEach(button=>button.onclick=()=>openForecast(button.dataset.forecast,button.dataset.hour));
   if(sameView){B.scrollTop=top;B.scrollLeft=left;B.querySelectorAll('.hstrip').forEach((e,i)=>{e.scrollLeft=scrolls[i]||0;});}
   if(id&&active&&!active.isConnected){const replacement=$(id);if(replacement)replacement.focus({preventScroll:true});}
   if(S.wx&&S.metrics.firstWeatherMs===null)S.metrics.firstWeatherMs=performance.now()-S.metrics.started;
