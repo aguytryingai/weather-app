@@ -253,22 +253,35 @@ button.hcell>span{display:block}
 @media(min-width:600px) and (min-height:500px){.dash .hero .big{font-size:3.5rem}.dash .hero .ic .weather-icon{width:48px;height:52px}.dash .hero{column-gap:10px}.hour-row{gap:5px}.hour-condition{gap:5px}}
 @media(max-width:359px){.hour-row{grid-template-columns:3rem minmax(0,1fr) 2.3rem 2.5rem;gap:5px}.hour-condition{gap:4px}.hour-condition .weather-icon{width:23px}.hero .big{font-size:3.5rem}.hero .ic .weather-icon{width:48px;height:52px}.hero{column-gap:10px}.outlook{font-size:.8rem}}
 
+
+.hour-row,.hour-columns{grid-template-columns:3rem minmax(0,1fr) 2.6rem 3rem 3rem;gap:6px}
+.hour-columns{display:grid;margin:12px 18px 0;font-size:.65rem;color:var(--dim);text-transform:uppercase}
+.hour-wind{text-align:right}.hour-wind small{display:block;font-size:.65rem;color:var(--dim)}
+.alerts-content{flex:1;overflow:auto;padding:12px 20px}.alerts-content p{margin:10px 0;line-height:1.5}
+.alert-card{margin:20px 0;padding:16px;border:1px solid currentColor;border-radius:12px}
+.alert-card summary{min-height:44px;cursor:pointer;padding:12px 0}.alert-copy{white-space:pre-wrap;overflow-wrap:anywhere}
+.alert-card small{overflow-wrap:anywhere}.panel-action{min-height:44px;margin:12px 20px;padding:8px}
+.theme-control{display:flex;justify-content:space-between;align-items:center;margin:16px 20px;gap:16px}.theme-control select{min-height:44px;padding:8px}
+.warning-dot{display:inline-flex;align-items:center;justify-content:center;min-width:20px;min-height:20px;border:1px solid currentColor;border-radius:50%}
+#alertSlot{font-size:.75rem;color:var(--dim2);padding:0 20px}#alertSlot:empty{padding:0}
+@media(max-width:339px){.hour-row,.hour-columns{grid-template-columns:2.3rem minmax(0,1fr) 2rem 2.3rem 2.3rem;gap:3px}}
 </style>
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:0.6875rem;color:#5E7A9C">v2.4.0</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:0.6875rem;color:#5E7A9C">v2.6.0-rc.1</div></div>
   <div class="offline" id="offlineBar" role="status" aria-live="polite" style="display:none">Offline — showing last saved forecast</div>
   <div class="head">
     <div class="brand"><h1>Skyward</h1><button id="locBtn" aria-label="Choose weather location" aria-haspopup="dialog"><span class="loc" id="locName">— ▾</span></button></div>
     <div class="hbtns">
       <button class="icon-btn" id="installBtn" aria-label="Install Skyward" title="Install app">⬇</button>
       <button class="icon-btn" id="btnSearch" aria-label="Search locations" title="Locations">📍</button>
+      <button class="icon-btn" id="btnAlerts" aria-label="Check weather alerts" aria-haspopup="dialog" aria-controls="alertsPanel" aria-expanded="false"><span aria-hidden="true">!</span></button>
       <button class="icon-btn" id="btnRefresh" aria-label="Refresh weather" title="Refresh">⟳</button>
       <button class="icon-btn" id="btnDiagnostics" title="Diagnostics" aria-label="Diagnostics">?</button>
     </div>
   </div>
-  <div id="alertSlot"></div>
+  <div id="alertSlot" aria-live="polite"></div>
   <main class="body" id="body" tabindex="-1" aria-label="Weather forecast"></main>
   <div id="announcer" class="sr-only" role="status" aria-live="polite"></div>
   <nav class="tabs" id="tabs" aria-label="Weather views"></nav>
@@ -281,8 +294,14 @@ button.hcell>span{display:block}
     <div class="sugg" id="suggBox" role="region" aria-label="City search results"></div>
     <div class="loclist" id="locList"></div>
   </div>
+  <div class="sheet" id="alertsPanel" role="dialog" aria-modal="true" aria-labelledby="alertsTitle" tabindex="-1" hidden>
+    <div class="sheet-head"><h2 id="alertsTitle">Weather alerts</h2><button class="icon-btn" id="alertsClose" aria-label="Close alerts">×</button></div>
+    <div id="alertsContent" class="alerts-content"></div>
+    <button id="alertsRetry" class="panel-action">Check again</button>
+  </div>
   <div class="sheet" id="diag" role="dialog" aria-modal="true" aria-labelledby="diagnosticsTitle" tabindex="-1" hidden>
     <div class="sheet-head"><h2 id="diagnosticsTitle" style="font-size:1.0625rem">Diagnostics</h2><button class="icon-btn" id="diagClose" aria-label="Close diagnostics">✕</button></div>
+    <label class="theme-control" for="themePreference">Appearance<select id="themePreference"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
     <div style="display:flex;gap:8px;padding:0 18px 10px">
       <button id="diagRun" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:0.875rem;cursor:pointer">Run checks</button>
       <button id="diagCopy" style="flex:1;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:0.875rem;cursor:pointer">Copy report</button>
@@ -293,8 +312,9 @@ button.hcell>span{display:block}
 
 <script src="reliability.js"></script>
 <script src="ui.js"></script>
+<script src="experience.js"></script>
 <script>
-const VERSION='2.5.1-rc.1';
+const VERSION='2.6.0-rc.1';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -319,7 +339,7 @@ const cset=(k,v,ttl)=>mem.set(k,{v,exp:Date.now()+ttl});
 const S={
   locations:store.get('locs',[{id:'here',name:'My Location',lat:null,lon:null,isGPS:true}]),
   sel:'here',tab:'now',wx:null,alerts:[],wide:false,
-  radar:{frames:[],idx:0,playing:false,tiles:{},base:[],ready:false,fail:'',z:7}
+  radar:{frames:[],idx:0,playing:!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,tiles:{},base:[],ready:false,fail:'',z:7}
 };
 const motionQuery=window.matchMedia?.('(prefers-reduced-motion: reduce)');
 if(motionQuery?.matches)S.radar.playing=false;
@@ -334,7 +354,7 @@ const hasCoordinates=L=>L&&Reliability.number(L.lat)!==null&&Reliability.number(
 S.locations=Array.isArray(S.locations)?S.locations.filter(l=>l&&typeof l.id==='string'&&typeof l.name==='string'&&(l.isGPS||hasCoordinates(l))):[];
 S.locations.filter(l=>l.isGPS&&!hasCoordinates(l)).forEach(l=>{l.lat=null;l.lon=null;});
 if(!S.locations.some(l=>l.id==='here'))S.locations.unshift({id:'here',name:'My Location',lat:null,lon:null,isGPS:true});
-S.error='';S.busy=false;S.alertState='idle';
+S.error='';S.busy=false;S.alertState='idle';S.alertChecked=null;S.alertLocation=null;
 function cachedFor(L){
   if(!hasCoordinates(L))return null;
   const key=locationKey(L),w=cget(key)||store.get('last:'+key,null);
@@ -347,8 +367,8 @@ async function fetchWeather(lat,lon,name,signal){
   const key=locationKey({lat,lon});
   const hit=cget(key); if(hit) return {...hit,location:name,fromCache:true};
   const d=await request(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
-    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,uv_index,is_day`+
-    `&hourly=temperature_2m,precipitation_probability,weather_code,is_day`+
+    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,is_day`+
+    `&hourly=temperature_2m,precipitation_probability,weather_code,is_day,wind_speed_10m,wind_direction_10m`+
     `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset`+
     `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=10`,{signal});
   const wx=Reliability.normalize(d,lat,lon,name,cond);
@@ -360,15 +380,12 @@ async function fetchAlerts(lat,lon,signal){
   const j=await request(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`,
     {signal,headers:{Accept:'application/geo+json'}});
   if(!Array.isArray(j.features))throw new Error('Alert response is incomplete');
-  const rank={Extreme:0,Severe:1,Moderate:2,Minor:3,Unknown:4};
-  return j.features.map(f=>f.properties).filter(p=>p&&(!p.expires||Date.parse(p.expires)>Date.now()))
-    .sort((a,b)=>(rank[a.severity]??4)-(rank[b.severity]??4))
-    .map(p=>({event:p.event,head:p.headline||'',description:p.description||'',instruction:p.instruction||''}));
+  return Experience.normalizeAlerts(j);
 }
 async function suggest(q,signal){
   const j=await request(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=en&format=json`,{signal});
   return (j.results||[]).filter(x=>hasCoordinates({lat:x.latitude,lon:x.longitude}))
-    .map(x=>({name:x.name,sub:[x.admin1,x.country].filter(Boolean).join(', '),lat:x.latitude,lon:x.longitude}));
+    .map(x=>({name:x.name,sub:[x.admin1,x.country].filter(Boolean).join(', '),lat:x.latitude,lon:x.longitude,countryCode:x.country_code}));
 }
 
 /* ================= RADAR ================= */
@@ -438,11 +455,14 @@ async function loadRadar(lat,lon){
     if(radarOnScreen())render();
     // Complete older frames on demand; only complete older frames enter history.
     for(const f of frames.filter(f=>f!==newest)){
-      if(!current()||!radarOnScreen()||document.hidden)break;
+      if(!current())break;
+      while(current()&&(document.hidden||!radarOnScreen()||activeDialog))await new Promise(resolve=>setTimeout(resolve,250));
+      if(!current())break;
       await run(frameJobs(f));
       if(!current())break;
       if(R.tiles[f.time].length===cells.length){
         const selected=R.frames[R.idx];R.frames.push(f);R.frames.sort((a,b)=>a.time-b.time);R.idx=R.frames.indexOf(selected);
+        if(radarOnScreen()&&!document.hidden&&!activeDialog)render();
       }
     }
     if(tok!==radarToken)return;
@@ -469,7 +489,7 @@ function drawRadar(){
   ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(W/2,W/2,3.5,0,7);ctx.fill();
   const ts=$('rts');
   if(ts&&f){const isFc=f.forecast;
-    ts.textContent=WeatherUI.instant(f.time*1000,S.wx?.timezone)+(isFc?' · forecast':' · '+Math.max(0,Math.round((Date.now()/1000-f.time)/60))+' min ago')+((R.tiles[f.time]||[]).length<(R.expectedTiles||9)?' · incomplete':'')+(Date.now()/1000-Math.max(...R.frames.filter(x=>!x.forecast).map(x=>x.time))>1500?' · latest observation is stale':'');}
+    ts.textContent=WeatherUI.instant(f.time*1000,S.wx?.timezone)+(isFc?' · forecast':' · frame generated '+Math.max(0,Math.round((Date.now()/1000-f.time)/60))+' min ago')+((R.tiles[f.time]||[]).length<(R.expectedTiles||9)?' · incomplete':'')+(Date.now()/1000-Math.max(...R.frames.filter(x=>!x.forecast).map(x=>x.time))>1500?' · latest frame is stale':'');}
   const sl=$('rsl'); if(sl){sl.value=R.idx;sl.setAttribute('aria-valuetext',ts?.textContent||'Frame '+(R.idx+1));}
 }
 const radarOnScreen=()=>{
@@ -480,11 +500,16 @@ const radarOnScreen=()=>{
 };
 function ensureRadar(){
   const L=S.locations.find(l=>l.id===S.sel);
-  if(!document.hidden&&radarOnScreen()&&hasCoordinates(L)&&!S.radar.ready&&!S.radar.loading&&!S.radar.fail)loadRadar(L.lat,L.lon);
+  if(!activeDialog&&!document.hidden&&radarOnScreen()&&hasCoordinates(L)&&!S.radar.ready&&!S.radar.loading&&!S.radar.fail)loadRadar(L.lat,L.lon);
 }
 $('body').addEventListener('scroll',ensureRadar,{passive:true});
-setInterval(()=>{if(!document.hidden&&S.radar.ready&&radarOnScreen())drawRadar();},30000);
-setInterval(()=>{if(!document.hidden&&S.radar.playing&&S.radar.ready&&radarOnScreen()){S.radar.idx=(S.radar.idx+1)%S.radar.frames.length;drawRadar();}},700);
+setInterval(()=>{if(!document.hidden&&S.radar.ready&&!activeDialog&&radarOnScreen())drawRadar();},30000);
+setInterval(()=>{
+  const R=S.radar,complete=R.frames.filter(f=>(R.tiles[f.time]||[]).length===(R.expectedTiles||9));
+  if(R.ready&&Experience.canAnimate({playing:R.playing,frames:complete.length,hidden:document.hidden,visible:radarOnScreen(),dialog:activeDialog})){
+    const current=complete.indexOf(R.frames[R.idx]);R.idx=R.frames.indexOf(complete[(current+1)%complete.length]);drawRadar();
+  }
+},700);
 
 /* ================= RENDER ================= */
 const fmtH=WeatherUI.wallTime;
@@ -507,14 +532,15 @@ function secNow(wx,hours){
     </div>
     ${hours===0?'':`<h2 class="sect">Next hours · precipitation chance</h2><div class="hstrip">${wx.hourly.slice(0,hours||6).map(hcell).join('')}</div>`}`;
 }
-const hcell=h=>`<button type="button" class="hcell" data-forecast="hourly" data-hour="${esc(h.t)}" aria-label="${esc(WeatherUI.calendarDate(h.t.slice(0,10)))} ${fmtH(h.t)}, ${esc(h.c.text)}, ${val(h.temp,' degrees')}, precipitation chance ${h.p===null?'unavailable':h.p+' percent'}. View hourly details"><span class="t">${fmtH(h.t)}</span><span class="i" aria-hidden="true">${WeatherUI.icon(h.c)}</span><span class="d">${val(h.temp,'°')}</span><span class="p">${val(h.p,'%')}</span><span class="forecast-hint" aria-hidden="true">Details →</span></button>`;
+const hcell=h=>`<button type="button" class="hcell" data-forecast="hourly" data-hour="${esc(h.t)}" aria-label="${esc(WeatherUI.calendarDate(h.t.slice(0,10)))} ${fmtH(h.t)}, ${esc(h.c.text)}, ${val(h.temp,' degrees')}, precipitation chance ${h.p===null?'unavailable':h.p+' percent'}. View hourly details"><span class="t">${fmtH(h.t)}</span><span class="i" aria-hidden="true">${WeatherUI.icon(h.c)}</span><span class="d">${val(h.temp,'°')}</span><span class="p">${val(h.p,'%')}</span></button>`;
 function secHourly(wx){
   let day='';
-  return `<h2 class="sect" id="hourly-heading" tabindex="-1">24-hour forecast</h2><p class="section-note">Local time · ${esc(wx.timezone||'selected location')}<br>Temperature · precipitation chance</p><ol class="timeline">`+wx.hourly.map(h=>{
-    const next=h.t.slice(0,10),heading=next!==day?`<li class="timeline-day">${esc(fmtD(next))} · ${esc(next.slice(5))}</li>`:'';day=next;
-    return heading+`<li class="hour-row" id="hour-${esc(h.t)}" tabindex="-1"><time datetime="${esc(h.t)}">${fmtH(h.t)}</time><span class="hour-condition">${WeatherUI.icon(h.c)}<span>${esc(h.c.text)}</span></span><strong>${val(h.temp,'°')}</strong><span class="hour-chance" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}<span class="chance-track" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,h.p||0))}%"></i></span></span></li>`;
+  return `<h2 class="sect" id="hourly-heading" tabindex="-1">Hourly forecast</h2><p class="section-note">Next 24 hours · ${esc(wx.timezone||'selected location')}<br>Rain column shows precipitation chance, including snow.</p><div class="hour-columns" aria-hidden="true"><span>Time</span><span>Conditions</span><span>Temp °F</span><span>Rain %</span><span>Wind mph</span></div><ol class="timeline">`+wx.hourly.map((h,i)=>{
+    const next=h.t.slice(0,10),heading=next!==day?`<li class="timeline-day">${esc(WeatherUI.calendarDate(next))}</li>`:'';day=next;
+    return heading+`<li class="hour-row${i===0?' current-hour':''}" id="hour-${esc(h.t)}" tabindex="-1"><time datetime="${esc(h.t)}">${fmtH(h.t)}</time><span class="hour-condition">${WeatherUI.icon(h.c)}<span>${esc(h.c.text)}</span></span><strong><span class="sr-only">Temperature </span>${val(h.temp,'°')}</strong><span class="hour-chance" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}<span class="chance-track" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,h.p||0))}%"></i></span></span><span class="hour-wind" aria-label="Wind ${val(Reliability.number(h.wind),' miles per hour')}, from ${Experience.windDirection(h.windDirection)}">${val(Reliability.number(h.wind))}<small>${Experience.windDirection(h.windDirection)}</small></span></li>`;
   }).join('')+'</ol>';
 }
+
 function secDaily(wx){
   const lows=wx.daily.map(d=>d.lo).filter(v=>Reliability.number(v)!==null);
   const highs=wx.daily.map(d=>d.hi).filter(v=>Reliability.number(v)!==null);
@@ -545,11 +571,25 @@ function wireRadar(){
 }
 const footer=wx=>`<div class="note">${wx.fromCache?'Saved forecast':'Updated'} · ${Math.max(0,Math.round((Date.now()-wx.updated)/6e4))} min ago<br>Forecast ${esc(wx.validAt.slice(0,10))}, ${WeatherUI.wallTime(wx.validAt,true)} · ${esc(wx.timezone||'local time')}</div>`;
 function renderAlerts(){
-  const markup=S.alerts.length?`<div class="alert">${S.alerts.map(a=>`<details><summary>⚠ ${esc(a.event)}</summary><p>${esc(a.head)}</p><p style="white-space:pre-wrap">${esc(a.description)}\n${esc(a.instruction)}</p></details>`).join('')}</div>`
-    :S.alertState==='unavailable'?'<div class="alert">Weather alerts unavailable. Try Refresh.</div>'
-    :S.alertState==='loading'?'<div class="note">Checking weather alerts…</div>':'';
-  if(S.alertMarkup!==markup){$('alertSlot').innerHTML=markup;S.alertMarkup=markup;}
+  const view=Experience.alertView(S.alerts,S.alertState,S.alertChecked);
+  const L=S.locations.find(l=>l.id===S.sel),button=$('btnAlerts');
+  button.dataset.state=view.kind;
+  button.dataset.severity=view.active[0]?.severity||'Unknown';
+  button.setAttribute('aria-label',view.label+'. Open weather alerts');
+  button.innerHTML=`<span class="warning-dot" aria-hidden="true">${view.active.length|| (view.kind==='clear'?'':view.kind==='loading'?'…':'!')}</span>`;
+  const summary=['active','stale','unavailable','unsupported'].includes(view.kind)?view.label:'';
+  if(S.alertSummary!==summary){$('alertSlot').textContent=summary;S.alertSummary=summary;}
+  if(activeDialog!=='alertsPanel')return;
+  const checked=S.alertChecked?WeatherUI.instant(S.alertChecked,S.wx?.timezone,true):'Not yet checked';
+  const stateText={clear:'No active alerts reported by the National Weather Service for this location.',loading:S.alerts.length?'Updating alerts. Previously checked information remains below.':'Checking weather alerts…',unsupported:'National Weather Service alerts are not supported for this location. Your weather forecast is still available.',unavailable:'Could not check alerts. Try again. An available forecast does not mean alerts were checked.',stale:S.alertState==='unavailable'?'Could not update alerts. Previously checked information is shown below; it may have changed.':'These alerts have not been checked recently. Check again for current information.',active:'Current alerts from the National Weather Service.'}[view.kind];
+  const markup=`<p class="alerts-location">${esc(L?.name||'Choose a location')}</p><p class="alert-state" role="status">${esc(stateText)}</p><p class="alert-checked">Last successful check: ${esc(checked)}</p>`+
+    view.active.map(a=>`<article class="alert-card" data-severity="${esc(a.severity)}"><p class="alert-severity">${esc(a.severity)} · ${esc(a.urgency)}</p><h3>${esc(a.event)}</h3><p>${esc(a.head)}</p><p>${esc(a.area)}</p><p>Expires: ${Number.isFinite(Date.parse(a.expires))?esc(WeatherUI.instant(Date.parse(a.expires),S.wx?.timezone,true)):'Not supplied'}</p>${a.instruction?`<h4>Instructions</h4><p class="alert-copy">${esc(a.instruction)}</p>`:''}<details><summary>Full alert</summary><p class="alert-copy">${esc(a.description||'No additional description supplied.')}</p><p>Source: ${esc(a.sender)}</p><p>Issued: ${Number.isFinite(Date.parse(a.sent))?esc(WeatherUI.instant(Date.parse(a.sent),S.wx?.timezone,true)):'Not supplied'}</p><small>Alert ID: ${esc(a.id||'Not supplied')}</small></details></article>`).join('');
+  // Preserve expanded disclosures and focus on a redraw with unchanged data.
+  if(S.alertPanelMarkup!==markup){$('alertsContent').innerHTML=markup;S.alertPanelMarkup=markup;}
+  $('alertsRetry').disabled=S.alertState==='loading'||!hasCoordinates(L)||S.busy;
+  $('alertsRetry').textContent=S.alertState==='loading'?'Checking…':'Check again';
 }
+
 function recovery(message){
   return `<div class="recovery" role="status">${esc(message)}<br><button id="retryWeather">Retry</button><button id="chooseLocation">Choose location</button></div>`;
 }
@@ -577,7 +617,7 @@ function render(){
 function renderView(){
   const wx=S.wx,B=$('body'),L=S.locations.find(l=>l.id===S.sel);
   $('locName').textContent='📍 '+(wx?.location||L?.name||'Choose location')+' ▾';
-  if(!radarOnScreen()&&S.radar.loading)resetRadar();
+  // Retain ready frames across forecast navigation; playback is viewport gated.
   renderAlerts();
   $('offlineBar').style.display=S.error||S.busy&&wx?'block':'none';
   $('offlineBar').textContent=(S.error||(S.busy&&wx?'Updating forecast…':''))+(wx?` · Saved ${WeatherUI.instant(wx.updated,wx.timezone,true)}`:'');
@@ -621,11 +661,12 @@ async function loadFor(L,force){
   const saved=cachedFor(L);
   if(!same)S.wx=saved?{...saved,location:L.name,fromCache:true}:null;
   if(saved&&!force&&Date.now()-saved.updated<6e5)cset(key,saved,Math.max(1,6e5-(Date.now()-saved.updated)));
-  S.busy=true;S.error='';if(!same){S.alerts=[];S.alertState='loading';}
+  S.busy=true;S.error='';if(S.alertLocation!==key){S.alerts=[];S.alertChecked=null;S.alertLocation=key;}S.alertState='loading';
   if(!same||force)resetRadar();$('loading').style.display='none';render();
   // Alerts and radar do not depend on a successful forecast response.
-  fetchAlerts(L.lat,L.lon,signal).then(a=>{if(current()){S.alerts=a;S.alertState='ready';renderAlerts();}})
-    .catch(e=>{if(current()&&!signal.aborted){S.alertState='unavailable';record('alerts',e);renderAlerts();}});
+  if(Experience.unsupportedCountry(L.countryCode)){S.alertState='unsupported';renderAlerts();}
+  else fetchAlerts(L.lat,L.lon,signal).then(a=>{if(current()){S.alerts=a;S.alertChecked=Date.now();S.alertState='ready';renderAlerts();}})
+    .catch(e=>{if(current()&&!signal.aborted){S.alertState=e.status===404?'unsupported':'unavailable';record('alerts',e);renderAlerts();}});
   try{
     const wx=await fetchWeather(L.lat,L.lon,L.name,signal);
     if(!current())return;
@@ -656,13 +697,13 @@ const previewAttempted=new Set();
 let dialogReturnFocus=null,activeDialog=null;
 const backgroundIds=['body','tabs','alertSlot','offlineBar'];
 function showDialog(id,focusId){
-  dialogReturnFocus=document.activeElement;activeDialog=id;
-  for(const name of ['sheet','diag'])$(name).hidden=name!==id;
+  dialogReturnFocus=document.activeElement;activeDialog=id;$('btnAlerts').setAttribute('aria-expanded',String(id==='alertsPanel'));
+  for(const name of ['sheet','diag','alertsPanel'])$(name).hidden=name!==id;
   for(const el of [document.querySelector('.head'),...backgroundIds.map($)].filter(Boolean)){el.inert=true;el.setAttribute('aria-hidden','true');}
   $(focusId||id).focus();
 }
 function hideDialog(){
-  if(activeDialog)$(activeDialog).hidden=true;activeDialog=null;
+  if(activeDialog)$(activeDialog).hidden=true;activeDialog=null;$('btnAlerts').setAttribute('aria-expanded','false');ensureRadar();
   for(const el of [document.querySelector('.head'),...backgroundIds.map($)].filter(Boolean)){el.inert=false;el.removeAttribute('aria-hidden');}
   (dialogReturnFocus?.isConnected?dialogReturnFocus:$('locBtn')).focus();
 }
@@ -671,11 +712,26 @@ function closeSheet(){$('searchGo').textContent='Add';++suggSeq;clearTimeout(sug
 $('locBtn').onclick=()=>openSheet(false);
 $('btnSearch').onclick=()=>openSheet(true);
 $('sheetClose').onclick=closeSheet;
+$('btnAlerts').onclick=()=>{showDialog('alertsPanel','alertsClose');renderAlerts();};
+$('alertsClose').onclick=hideDialog;
+$('alertsRetry').onclick=()=>{const L=S.locations.find(l=>l.id===S.sel);if(hasCoordinates(L)&&!S.busy)loadFor(L,true);};
+const colorQuery=window.matchMedia('(prefers-color-scheme: dark)');
+let themePreference=Experience.preference(store.get('theme','system'));
+function applyTheme(){
+  const theme=Experience.theme(themePreference,colorQuery.matches);
+  document.documentElement.dataset.theme=theme;
+  document.querySelector('meta[name="theme-color"]').content=theme==='dark'?'#10191f':'#f6f5ef';
+  $('themePreference').value=themePreference;
+  if(S.radar.ready)drawRadar();
+}
+$('themePreference').onchange=e=>{themePreference=Experience.preference(e.target.value);store.set('theme',themePreference);applyTheme();};
+colorQuery.addEventListener('change',()=>{if(themePreference==='system')applyTheme();});
+applyTheme();
 document.addEventListener('keydown',e=>{
   if(!activeDialog)return;
   if(e.key==='Escape'){e.preventDefault();if(activeDialog==='sheet')closeSheet();else hideDialog();return;}
   if(e.key!=='Tab')return;
-  const items=Array.from($(activeDialog).querySelectorAll('button,input,a[href],[tabindex="0"]')).filter(el=>!el.disabled&&!el.hidden&&getComputedStyle(el).display!=='none');
+  const items=Array.from($(activeDialog).querySelectorAll('button,input,select,summary,a[href],[tabindex="0"]')).filter(el=>!el.disabled&&!el.hidden&&getComputedStyle(el).display!=='none');
   if(!items.length){e.preventDefault();$(activeDialog).focus();return;}
   const first=items[0],last=items[items.length-1];
   if(e.shiftKey&&(document.activeElement===first||document.activeElement===$(activeDialog))){e.preventDefault();last.focus();}
@@ -723,7 +779,7 @@ async function pickSugg(i){
   closeSheet();
   if(dup){await switchLocation(dup.id);return;}
   const id='loc'+Date.now();
-  S.locations.push({id,name:g.name,lat:g.lat,lon:g.lon});
+  S.locations.push({id,name:g.name,lat:g.lat,lon:g.lon,countryCode:g.countryCode});
   store.set('locs',S.locations);
   await switchLocation(id);
 }
@@ -759,7 +815,7 @@ $('btnRefresh').onclick=()=>{const L=S.locations.find(l=>l.id===S.sel);if(L)load
 let cancelBoot=null;
 function boot({background=false}={}){
   cancelBoot?.();
-  if(!background){++loadToken;loadController?.abort();resetRadar();S.wx=null;S.alerts=[];S.alertState='idle';}
+  if(!background){++loadToken;loadController?.abort();resetRadar();S.wx=null;S.alerts=[];S.alertState='idle';S.alertChecked=null;S.alertLocation=null;}
   const anchor=loadToken;
   let active=true,timer=null;
   cancelBoot=()=>{active=false;clearTimeout(timer);};
@@ -802,6 +858,7 @@ function refreshSelected(){
   if(hasCoordinates(L)&&!S.busy)loadFor(L,true);
 }
 setInterval(()=>{if(!document.hidden)refreshSelected();},6e5);
+setInterval(()=>{if(!document.hidden)renderAlerts();},60000);
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&(!S.wx||S.error||Date.now()-S.wx.updated>6e5))refreshSelected();
 });

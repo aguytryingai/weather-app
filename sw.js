@@ -1,7 +1,7 @@
-const VERSION = '2.5.1-rc.1';
+const VERSION = '2.6.0-rc.1';
 const SHELL_CACHE = 'skyward-shell-' + VERSION;
 const TILE_CACHE = 'skyward-tiles-' + VERSION;
-const SHELL = ['./', './index.html', './reliability.js', './ui.js', './manifest.json', './icon-192.png', './icon-512.png'];
+const SHELL = ['./', './index.html', './reliability.js', './ui.js', './experience.js', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL_CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

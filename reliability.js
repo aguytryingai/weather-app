@@ -48,10 +48,11 @@ const Reliability = (() => {
     const current = d.current;
     return {schema:1, lat, lon, location, updated:now, validAt:current.time, timezone:d.timezone || '', fromCache:false,
       current:{temp:rounded(current.temperature_2m), feels:rounded(current.apparent_temperature),
-        hum:number(current.relative_humidity_2m), wind:rounded(current.wind_speed_10m),
+        hum:number(current.relative_humidity_2m), wind:rounded(current.wind_speed_10m), windDirection:number(current.wind_direction_10m),
         precip:number(current.precipitation), uv:number(current.uv_index), c:cond(current.weather_code,current.is_day)},
       hourly:d.hourly.time.slice(start,start+24).map((t,i) => {const j=start+i;return {
         t,temp:rounded(get(d.hourly,'temperature_2m',j)),p:number(get(d.hourly,'precipitation_probability',j)),
+        wind:rounded(get(d.hourly,'wind_speed_10m',j)),windDirection:number(get(d.hourly,'wind_direction_10m',j)),
         c:cond(get(d.hourly,'weather_code',j),get(d.hourly,'is_day',j))};}),
       daily:d.daily.time.map((t,i) => ({t,hi:rounded(get(d.daily,'temperature_2m_max',i)),
         lo:rounded(get(d.daily,'temperature_2m_min',i)),p:number(get(d.daily,'precipitation_probability_max',i)),
