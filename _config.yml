@@ -1,0 +1,3 @@
+# Keep development fixtures and test runners out of the published Pages site.
+exclude:
+  - tests

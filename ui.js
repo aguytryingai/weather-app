@@ -37,8 +37,22 @@ const WeatherUI = (() => {
     else if(t==='clear'||t==='mostly clear')body=c.icon==='🌙'?'<path d="M20 15A9 9 0 0 1 9 3a9 9 0 1 0 11 12Z"/>':sun;
     else if(t.includes('partly'))body='<circle cx="8" cy="7" r="4"/>'+cloud;
     else if(t==='—'||!t)body='<path d="M8 9a4 4 0 1 1 6 3c-2 1-2 2-2 3m0 4v.1"/>';
-    return `<svg class="weather-icon" viewBox="0 0 24 26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`;
+    return `<svg class="weather-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`;
   }
-  return {wallTime,instant,calendarDate,summary,icon};
+  function controlIcon(name){
+    const paths={clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6.5V12l3.8 2.3"/>',
+      pin:'<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+      refresh:'<path d="M20 6v5h-5M4 18v-5h5M19.5 10A8 8 0 0 0 6 5M4.5 14A8 8 0 0 0 18 19"/>',
+      more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+      calendar:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 10h18m-13 5h2m4 0h2"/>',
+      radar:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12 18.5 5.5"/><circle cx="12" cy="12" r="1"/>',
+      wind:'<path d="M3 8h12a3 3 0 1 0-3-3M3 12h16a2 2 0 1 0-2-2M3 16h10a3 3 0 1 1-3 3"/>',
+      drop:'<path d="M12 3S5 11 5 15a7 7 0 0 0 14 0c0-4-7-12-7-12Z"/>',
+      sun,close:'<path d="m6 6 12 12M18 6 6 18"/>',
+      download:'<path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/>',
+      warning:'<path d="m12 3 10 18H2L12 3Zm0 6v5m0 3v.1"/>'};
+    return `<svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths[name]||sun}</svg>`;
+  }
+  return {wallTime,instant,calendarDate,summary,icon,controlIcon};
 })();
 if(typeof module!=='undefined')module.exports=WeatherUI;

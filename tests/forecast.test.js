@@ -101,7 +101,7 @@ test('forecast drill-in navigates repeatedly and transfers focus to the exact ho
  vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('function openForecast('),html.indexOf('function render(){')),ctx);
  for(const wide of [false,true]){ctx.S.wide=wide;for(let i=0;i<3;i++){
   ctx.openForecast('hourly','2027-01-01T00:00');assert.equal(ctx.S.tab,'hourly');assert.ok(calls.some(c=>c[0]==='target'&&c[1]==='hour-2027-01-01T00:00'));
-  ctx.openForecast('daily');assert.equal(ctx.S.tab,'daily');assert.equal(calls.at(-3)[1],'daily-heading');assert.equal(calls.at(-2)[0],'focus');assert.equal(calls.at(-1)[1].behavior,'instant');
+  ctx.openForecast('daily');assert.equal(ctx.S.tab,'now');assert.equal(calls.at(-3)[1],'daily-heading');assert.equal(calls.at(-2)[0],'focus');assert.equal(calls.at(-1)[1].behavior,'instant');
  }}
  const before=calls.length;ctx.openForecast('radar');assert.equal(calls.length,before);ctx.S.wx=null;ctx.openForecast('hourly');assert.equal(calls.length,before);
 });
@@ -125,7 +125,7 @@ test('wind uses supplied hourly speed and direction; old saved forecasts remain 
 test('theme persistence and system change apply only to the System selection',()=>{
  const handlers={},elements={themePreference:{},meta:{}},stored=[];
  const ctx={Experience,themePreference:null,store:{get:()=> 'system',set:(...x)=>stored.push(x)},window:{matchMedia:()=>({matches:false,addEventListener:(type,fn)=>handlers[type]=fn})},document:{documentElement:{dataset:{}},querySelector:()=>elements.meta},$:id=>elements[id],S:{radar:{ready:false}},drawRadar:()=>{}};
- vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('const colorQuery='),html.indexOf("document.addEventListener('keydown'",html.indexOf('const colorQuery='))),ctx);
+ vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('const colorQuery='),html.indexOf("for(const [id,icon]",html.indexOf('const colorQuery='))),ctx);
  assert.equal(ctx.document.documentElement.dataset.theme,'light');
  vm.runInContext('colorQuery.matches=true',ctx);handlers.change();assert.equal(ctx.document.documentElement.dataset.theme,'dark');
  elements.themePreference.onchange({target:{value:'light'}});assert.equal(stored.at(-1)[1],'light');handlers.change();assert.equal(ctx.document.documentElement.dataset.theme,'light');
@@ -140,7 +140,7 @@ test('radar ticks only complete cached frames; hidden, covered, offscreen and us
  ctx.S.radar.playing=true;ctx.S.radar.tiles[2]=[];tick();assert.equal(draws,2);
 });
 test('scrubbing pauses and Play explicitly resumes without reloading radar',()=>{
- const els={rcv:{},rpl:{setAttribute(){}},rsl:{}};const ctx={S:{radar:{ready:true,playing:true,frames:[{time:1},{time:2}],idx:1}},$:id=>els[id],drawRadar:()=>{}};
+ const els={rcv:{},rpl:{setAttribute(){}},rsl:{}};const ctx={document:{querySelector:()=>null},S:{radar:{ready:true,playing:true,frames:[{time:1},{time:2}],idx:1}},$:id=>els[id],drawRadar:()=>{}};
  vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('function wireRadar(){'),html.indexOf('function renderAlerts(){')),ctx);
  ctx.wireRadar();els.rsl.oninput({target:{value:'0'}});assert.equal(ctx.S.radar.playing,false);assert.equal(ctx.S.radar.idx,0);assert.equal(els.rpl.textContent,'Play');els.rpl.onclick();assert.equal(ctx.S.radar.playing,true);
 });

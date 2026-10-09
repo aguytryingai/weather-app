@@ -266,25 +266,25 @@ button.hcell>span{display:block}
 #alertSlot{font-size:.75rem;color:var(--dim2);padding:0 20px}#alertSlot:empty{padding:0}
 @media(max-width:339px){.hour-row,.hour-columns{grid-template-columns:2.3rem minmax(0,1fr) 2rem 2.3rem 2.3rem;gap:3px}}
 </style>
+<link rel="stylesheet" href="design.css">
+<script>try{const t=JSON.parse(localStorage.getItem("sky:theme"));document.documentElement.dataset.theme=t==="light"||t==="dark"?t:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch{document.documentElement.dataset.theme=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}</script>
 </head>
 <body>
 <div id="app">
-  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:0.6875rem;color:#5E7A9C">v2.6.0-rc.1</div></div>
+  <div class="loading" id="loading"><div class="spin"></div><div id="loadMsg">Finding you…</div><div style="font-size:0.6875rem;color:#5E7A9C">v2.6.0</div></div>
   <div class="offline" id="offlineBar" role="status" aria-live="polite" style="display:none">Offline — showing last saved forecast</div>
-  <div class="head">
-    <div class="brand"><h1>Skyward</h1><button id="locBtn" aria-label="Choose weather location" aria-haspopup="dialog"><span class="loc" id="locName">— ▾</span></button></div>
-    <div class="hbtns">
-      <button class="icon-btn" id="installBtn" aria-label="Install Skyward" title="Install app">⬇</button>
-      <button class="icon-btn" id="btnSearch" aria-label="Search locations" title="Locations">📍</button>
+  <header class="head">
+    <div class="header-top"><h1><button id="btnDiagnostics" class="brand-menu" title="Appearance and tools" aria-label="Skyward appearance and tools" aria-haspopup="dialog">Skyward <span aria-hidden="true">⌄</span></button></h1><div class="hbtns">
       <button class="icon-btn" id="btnAlerts" aria-label="Check weather alerts" aria-haspopup="dialog" aria-controls="alertsPanel" aria-expanded="false"><span aria-hidden="true">!</span></button>
-      <button class="icon-btn" id="btnRefresh" aria-label="Refresh weather" title="Refresh">⟳</button>
-      <button class="icon-btn" id="btnDiagnostics" title="Diagnostics" aria-label="Diagnostics">?</button>
-    </div>
-  </div>
-  <div id="alertSlot" aria-live="polite"></div>
+      <button class="icon-btn" id="btnSearch" aria-label="Search locations" title="Locations"></button>
+      <button class="icon-btn" id="btnRefresh" aria-label="Refresh weather" title="Refresh"></button>
+    </div></div>
+    <div class="header-location"><button id="locBtn" aria-label="Choose weather location" aria-haspopup="dialog"><span class="loc" id="locName">Choose location ▾</span></button><button id="alertSummary" aria-label="Open weather alerts" aria-haspopup="dialog" aria-controls="alertsPanel" aria-expanded="false"><span id="alertSlot" aria-live="polite"></span></button></div>
+  </header>
   <main class="body" id="body" tabindex="-1" aria-label="Weather forecast"></main>
   <div id="announcer" class="sr-only" role="status" aria-live="polite"></div>
   <nav class="tabs" id="tabs" aria-label="Weather views"></nav>
+  <div id="dialogShade" class="dialog-shade" hidden aria-hidden="true"></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="locationsTitle" tabindex="-1" hidden>
     <div class="sheet-head"><h2 id="locationsTitle" style="font-size:1.0625rem">Locations</h2><button class="icon-btn" id="sheetClose" aria-label="Close locations">✕</button></div>
     <div class="searchrow">
@@ -300,7 +300,8 @@ button.hcell>span{display:block}
     <button id="alertsRetry" class="panel-action">Check again</button>
   </div>
   <div class="sheet" id="diag" role="dialog" aria-modal="true" aria-labelledby="diagnosticsTitle" tabindex="-1" hidden>
-    <div class="sheet-head"><h2 id="diagnosticsTitle" style="font-size:1.0625rem">Diagnostics</h2><button class="icon-btn" id="diagClose" aria-label="Close diagnostics">✕</button></div>
+    <div class="sheet-head"><h2 id="diagnosticsTitle" style="font-size:1.0625rem">Appearance &amp; tools</h2><button class="icon-btn" id="diagClose" aria-label="Close diagnostics">✕</button></div>
+    <button class="panel-action" id="installBtn">Install Skyward</button>
     <label class="theme-control" for="themePreference">Appearance<select id="themePreference"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
     <div style="display:flex;gap:8px;padding:0 18px 10px">
       <button id="diagRun" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:0.875rem;cursor:pointer">Run checks</button>
@@ -314,7 +315,7 @@ button.hcell>span{display:block}
 <script src="ui.js"></script>
 <script src="experience.js"></script>
 <script>
-const VERSION='2.6.0-rc.1';
+const VERSION='2.6.0';
 console.log('Skyward Weather v'+VERSION);
 
 /* ================= WEATHER CODES — day/night aware ================= */
@@ -480,11 +481,21 @@ function drawRadar(){
   const cv=$('rcv'); if(!cv) return;
   const R=S.radar,ctx=cv.getContext('2d'),W=cv.width;
   const px=(tx,ty)=>[tx*256-R.xf*256+W/2, ty*256-R.yf*256+W/2];
-  ctx.fillStyle='#0e1622';ctx.fillRect(0,0,W,W);
-  R.base.forEach(({im,tx,ty})=>{const[x,y]=px(tx,ty);ctx.globalAlpha=1;ctx.drawImage(im,x,y,256,256);});
+  const dark=document.documentElement.dataset.theme!=='light';
+  const baseKey=(dark?'dark':'light')+':'+R.base.length;
+  if(R.baseKey!==baseKey){
+    const base=document.createElement('canvas');base.width=W;base.height=W;
+    const map=base.getContext('2d');map.fillStyle=dark?'#10191f':'#e9eeec';map.fillRect(0,0,W,W);
+    // Transform only geography; precipitation colors and the legend stay untouched.
+    map.filter=dark?'grayscale(1) invert(1) brightness(.82)':'grayscale(1) contrast(.8) brightness(1.05)';
+    R.base.forEach(({im,tx,ty})=>{const[x,y]=px(tx,ty);map.drawImage(im,x,y,256,256);});
+    map.filter='none';R.baseSurface=base;R.baseKey=baseKey;
+  }
+  ctx.globalAlpha=1;ctx.drawImage(R.baseSurface,0,0);
   const f=R.frames[R.idx];
-  if(f)(R.tiles[f.time]||[]).forEach(({im,tx,ty})=>{const[x,y]=px(tx,ty);ctx.globalAlpha=.82;ctx.drawImage(im,x,y,256,256);});
+  if(f)(R.tiles[f.time]||[]).forEach(({im,tx,ty})=>{const[x,y]=px(tx,ty);ctx.globalAlpha=1;ctx.drawImage(im,x,y,256,256);});
   ctx.globalAlpha=1;
+  ctx.strokeStyle='#10191f';ctx.lineWidth=5;ctx.beginPath();ctx.arc(W/2,W/2,8,0,7);ctx.stroke();
   ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(W/2,W/2,8,0,7);ctx.stroke();
   ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(W/2,W/2,3.5,0,7);ctx.fill();
   const ts=$('rts');
@@ -519,26 +530,25 @@ const fmtSun=t=>WeatherUI.wallTime(t,true);
 /* --- section builders (composable so wide layouts can show several at once) --- */
 function secNow(wx,hours){
   const c=wx.current;
-  return `
-    <div class="hero"><div class="ic" aria-hidden="true">${WeatherUI.icon(c.c)}</div><div class="big">${val(c.temp,'°')}</div>
-      <div class="cond">${c.c.text}</div>
-      <div class="feels">Feels like ${val(c.feels,'°')}<button type="button" class="detail-link" data-forecast="daily" aria-label="High ${val(wx.daily[0].hi,' degrees')}, low ${val(wx.daily[0].lo,' degrees')}. View 10-day forecast">H:${val(wx.daily[0].hi,'°')} L:${val(wx.daily[0].lo,'°')} · 10 days →</button></div></div>
-    <button type="button" class="outlook" data-forecast="hourly">${esc(WeatherUI.summary(wx))}<span class="forecast-hint">View hourly forecast →</span></button>
+  return `<p class="forecast-date">${esc(WeatherUI.calendarDate(wx.validAt.slice(0,10)))} · ${fmtSun(wx.validAt)}</p>
+    <div class="hero"><div class="big">${val(c.temp,'°')}</div><div class="hero-conditions"><div class="cond">${esc(c.c.text)}</div><div class="feels">Feels like ${val(c.feels,'°')}</div></div><div class="ic" aria-hidden="true">${WeatherUI.icon(c.c)}</div></div>
+    <div class="hero-footer"><button type="button" class="detail-link" data-forecast="daily" aria-label="High ${val(wx.daily[0].hi,' degrees')}, low ${val(wx.daily[0].lo,' degrees')}. View 10-day forecast">High ${val(wx.daily[0].hi,'°')} · Low ${val(wx.daily[0].lo,'°')}</button><span>${wx.fromCache?'Saved':'Updated'} ${Math.max(0,Math.round((Date.now()-wx.updated)/60000))} min ago</span></div>
+    ${hours===0?'':`<section class="next-hours" aria-labelledby="nextHoursTitle"><div class="section-heading"><h2 id="nextHoursTitle">Next hours</h2><button type="button" class="text-action" data-forecast="hourly">View hourly →</button></div><p class="outlook">${esc(WeatherUI.summary(wx))}</p><div class="hstrip">${wx.hourly.slice(0,6).map(hcell).join('')}</div></section>`}
     <div class="grid">
-      <div class="card"><div class="k">Wind</div><div class="v">${val(c.wind,' mph')}</div></div>
-      <div class="card"><div class="k">Humidity</div><div class="v">${val(c.hum,'%')}</div></div>
-      <div class="card"><div class="k">UV index</div><div class="v">${c.uv===null?'—':c.uv.toFixed(1)}</div><div class="s">${c.uv===null?'Unavailable':c.uv<3?'Low':c.uv<6?'Moderate':c.uv<8?'High':c.uv<11?'Very high':'Extreme'}</div></div>
-      <div class="card"><div class="k">Sun</div><div class="v" style="font-size:0.875rem">↑ ${fmtSun(wx.sunrise)}<br>↓ ${fmtSun(wx.sunset)}</div></div>
-    </div>
-    ${hours===0?'':`<h2 class="sect">Next hours · precipitation chance</h2><div class="hstrip">${wx.hourly.slice(0,hours||6).map(hcell).join('')}</div>`}`;
+      <div class="card"><div class="k">${WeatherUI.controlIcon('wind')}Wind</div><div class="v">${val(c.wind,' mph')}<small> · ${Experience.windDirection(c.windDirection)}</small></div></div>
+      <div class="card"><div class="k">${WeatherUI.controlIcon('drop')}Humidity</div><div class="v">${val(c.hum,'%')}</div></div>
+      <div class="card"><div class="k">${WeatherUI.controlIcon('sun')}UV index</div><div class="v">${c.uv===null?'—':c.uv.toFixed(1)}<small> · ${c.uv===null?'Unavailable':c.uv<3?'Low':c.uv<6?'Moderate':c.uv<8?'High':c.uv<11?'Very high':'Extreme'}</small></div></div>
+      <div class="card"><div class="k">${WeatherUI.controlIcon('sun')}Sunrise / sunset</div><div class="v sun-times">${fmtSun(wx.sunrise)}<span> / </span>${fmtSun(wx.sunset)}</div></div>
+    </div>`;
 }
+
 const hcell=h=>`<button type="button" class="hcell" data-forecast="hourly" data-hour="${esc(h.t)}" aria-label="${esc(WeatherUI.calendarDate(h.t.slice(0,10)))} ${fmtH(h.t)}, ${esc(h.c.text)}, ${val(h.temp,' degrees')}, precipitation chance ${h.p===null?'unavailable':h.p+' percent'}. View hourly details"><span class="t">${fmtH(h.t)}</span><span class="i" aria-hidden="true">${WeatherUI.icon(h.c)}</span><span class="d">${val(h.temp,'°')}</span><span class="p">${val(h.p,'%')}</span></button>`;
 function secHourly(wx){
   let day='';
-  return `<h2 class="sect" id="hourly-heading" tabindex="-1">Hourly forecast</h2><p class="section-note">Next 24 hours · ${esc(wx.timezone||'selected location')}<br>Rain column shows precipitation chance, including snow.</p><div class="hour-columns" aria-hidden="true"><span>Time</span><span>Conditions</span><span>Temp °F</span><span>Rain %</span><span>Wind mph</span></div><ol class="timeline">`+wx.hourly.map((h,i)=>{
+  return `<h2 class="sect" id="hourly-heading" tabindex="-1">Hourly forecast</h2><p class="section-note">Next 24 hours · ${esc(wx.timezone||'selected location')}<br>Rain column shows precipitation chance, including snow.</p><div class="hourly-scroller"><div class="hour-columns" aria-hidden="true"><span>Time</span><span>Conditions</span><span>Temp °F</span><span>Rain %</span><span>Wind mph</span></div><ol class="timeline">`+wx.hourly.map((h,i)=>{
     const next=h.t.slice(0,10),heading=next!==day?`<li class="timeline-day">${esc(WeatherUI.calendarDate(next))}</li>`:'';day=next;
-    return heading+`<li class="hour-row${i===0?' current-hour':''}" id="hour-${esc(h.t)}" tabindex="-1"><time datetime="${esc(h.t)}">${fmtH(h.t)}</time><span class="hour-condition">${WeatherUI.icon(h.c)}<span>${esc(h.c.text)}</span></span><strong><span class="sr-only">Temperature </span>${val(h.temp,'°')}</strong><span class="hour-chance" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}<span class="chance-track" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,h.p||0))}%"></i></span></span><span class="hour-wind" aria-label="Wind ${val(Reliability.number(h.wind),' miles per hour')}, from ${Experience.windDirection(h.windDirection)}">${val(Reliability.number(h.wind))}<small>${Experience.windDirection(h.windDirection)}</small></span></li>`;
-  }).join('')+'</ol>';
+    return heading+`<li class="hour-row${i===0&&!wx.fromCache?' current-hour':''}" id="hour-${esc(h.t)}" tabindex="-1"><time datetime="${esc(h.t)}">${fmtH(h.t)}${i===0&&!wx.fromCache?'<span class="hour-now">Now</span>':''}</time><span class="hour-condition">${WeatherUI.icon(h.c)}<span>${esc(h.c.text)}</span></span><strong><span class="sr-only">Temperature </span>${val(h.temp,'°')}</strong><span class="hour-chance" aria-label="Precipitation chance ${h.p===null?'unavailable':h.p+' percent'}">${val(h.p,'%')}<span class="chance-track" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,h.p||0))}%"></i></span></span><span class="hour-wind" aria-label="Wind ${val(Reliability.number(h.wind),' miles per hour')}, from ${Experience.windDirection(h.windDirection)}">${val(Reliability.number(h.wind))}<small>${Experience.windDirection(h.windDirection)}</small></span></li>`;
+  }).join('')+'</ol></div>';
 }
 
 function secDaily(wx){
@@ -556,16 +566,16 @@ function secDaily(wx){
 }
 function secRadar(){
   const R=S.radar;
-  return `<h2 class="sect">Precipitation radar</h2>
+  return `<h2 class="sect radar-title">Precipitation radar</h2><p class="section-note">Rain and snow intensity · ${R.playing?'Auto-loop':'Paused'}</p>
     <div class="radarbox"><div class="attribution">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> · <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a></div>
     ${R.ready?'<canvas id="rcv" width="512" height="512" role="img" aria-label="Precipitation radar around the selected location. Use the hourly forecast for precipitation probabilities."></canvas>':`<div class="rstatus" role="status">${R.fail?'Radar unavailable: '+esc(R.fail)+'<br>Use Refresh to retry.':'Loading newest radar frame…'}</div>`}</div>
     ${R.ready?`<div class="radar-controls"><button id="rpl" ${R.frames.length<2?'disabled':''} aria-label="${R.playing?'Pause radar animation':'Play radar animation'}">${R.playing?'Pause':'Play'}</button><label for="rsl" class="sr-only">Radar frame time</label><input type="range" id="rsl" min="0" max="${Math.max(0,R.frames.length-1)}" value="${R.idx}" ${R.frames.length<2?'disabled':''}><div id="rts" class="radar-time"></div><p class="radar-progress" role="status">${R.loading?'Newest frame ready · loading history…':R.frames.length+' frames available'}${R.failedTiles||R.base.length<(R.expectedTiles||9)?' · Some map tiles are missing. Refresh to retry.':''}</p></div>`:''}
-    <div class="radar-key"><span>Rain intensity · weaker → stronger</span><div class="rain-scale" aria-hidden="true"></div><span>Rain: blue → yellow → orange / red.</span><span>Snow: pale blue → deeper blue.</span><div class="snow-scale" aria-hidden="true"></div><small>Radar reflectivity, not rain probability. <a href="https://www.rainviewer.com/api/color-schemes.html" target="_blank" rel="noopener">Full color key</a></small></div>`;
+    <div class="radar-key"><span>Rain intensity · weaker → stronger</span><div class="rain-scale" aria-hidden="true"></div><span>Rain: blue → yellow → orange / red.</span><span>Snow: pale blue → deeper blue.</span><div class="snow-scale" aria-hidden="true"></div><small>Radar shows precipitation intensity, not cloud cover or rain probability. Scrubbing pauses playback. Reduced motion starts paused. <a href="https://www.rainviewer.com/api/color-schemes.html" target="_blank" rel="noopener">Full color key</a></small></div>`;
 }
 function wireRadar(){
   const R=S.radar;if(!R.ready||!$('rcv'))return;
   drawRadar();
-  const pauseLabel=()=>{$('rpl').textContent=R.playing?'Pause':'Play';$('rpl').setAttribute('aria-label',R.playing?'Pause radar animation':'Play radar animation');};
+  const pauseLabel=()=>{const note=document.querySelector('.radar-title + .section-note');if(note)note.textContent='Rain and snow intensity · '+(R.playing?'Auto-loop':'Paused');$('rpl').textContent=R.playing?'Pause':'Play';$('rpl').setAttribute('aria-label',R.playing?'Pause radar animation':'Play radar animation');};
   $('rpl').onclick=()=>{R.playing=!R.playing;pauseLabel();};
   $('rsl').oninput=e=>{R.playing=false;pauseLabel();R.idx=+e.target.value;drawRadar();};
 }
@@ -576,14 +586,17 @@ function renderAlerts(){
   button.dataset.state=view.kind;
   button.dataset.severity=view.active[0]?.severity||'Unknown';
   button.setAttribute('aria-label',view.label+'. Open weather alerts');
+  $('alertSummary').setAttribute('aria-label',view.label+'. Open weather alerts');
   button.innerHTML=`<span class="warning-dot" aria-hidden="true">${view.active.length|| (view.kind==='clear'?'':view.kind==='loading'?'…':'!')}</span>`;
   const summary=['active','stale','unavailable','unsupported'].includes(view.kind)?view.label:'';
+  $('alertSummary').hidden=!summary;
+  $('alertSummary').dataset.state=view.kind;
   if(S.alertSummary!==summary){$('alertSlot').textContent=summary;S.alertSummary=summary;}
   if(activeDialog!=='alertsPanel')return;
   const checked=S.alertChecked?WeatherUI.instant(S.alertChecked,S.wx?.timezone,true):'Not yet checked';
   const stateText={clear:'No active alerts reported by the National Weather Service for this location.',loading:S.alerts.length?'Updating alerts. Previously checked information remains below.':'Checking weather alerts…',unsupported:'National Weather Service alerts are not supported for this location. Your weather forecast is still available.',unavailable:'Could not check alerts. Try again. An available forecast does not mean alerts were checked.',stale:S.alertState==='unavailable'?'Could not update alerts. Previously checked information is shown below; it may have changed.':'These alerts have not been checked recently. Check again for current information.',active:'Current alerts from the National Weather Service.'}[view.kind];
   const markup=`<p class="alerts-location">${esc(L?.name||'Choose a location')}</p><p class="alert-state" role="status">${esc(stateText)}</p><p class="alert-checked">Last successful check: ${esc(checked)}</p>`+
-    view.active.map(a=>`<article class="alert-card" data-severity="${esc(a.severity)}"><p class="alert-severity">${esc(a.severity)} · ${esc(a.urgency)}</p><h3>${esc(a.event)}</h3><p>${esc(a.head)}</p><p>${esc(a.area)}</p><p>Expires: ${Number.isFinite(Date.parse(a.expires))?esc(WeatherUI.instant(Date.parse(a.expires),S.wx?.timezone,true)):'Not supplied'}</p>${a.instruction?`<h4>Instructions</h4><p class="alert-copy">${esc(a.instruction)}</p>`:''}<details><summary>Full alert</summary><p class="alert-copy">${esc(a.description||'No additional description supplied.')}</p><p>Source: ${esc(a.sender)}</p><p>Issued: ${Number.isFinite(Date.parse(a.sent))?esc(WeatherUI.instant(Date.parse(a.sent),S.wx?.timezone,true)):'Not supplied'}</p><small>Alert ID: ${esc(a.id||'Not supplied')}</small></details></article>`).join('');
+    view.active.map(a=>`<article class="alert-card" data-severity="${esc(a.severity)}"><p class="alert-severity">${esc(a.severity)} · ${esc(a.urgency)}</p><h3>${esc(a.event)}</h3><p>${esc(a.head)}</p><p>${esc(a.area)}</p><p>Expires: ${Number.isFinite(Date.parse(a.expires))?esc(WeatherUI.instant(Date.parse(a.expires),S.wx?.timezone,true)):'Not supplied'}</p>${a.instruction?`<div class="alert-instructions"><h4>Instructions</h4><p class="alert-copy">${esc(a.instruction)}</p></div>`:''}<details><summary>Full alert</summary><p class="alert-copy">${esc(a.description||'No additional description supplied.')}</p><p>Source: ${esc(a.sender)}</p><p>Issued: ${Number.isFinite(Date.parse(a.sent))?esc(WeatherUI.instant(Date.parse(a.sent),S.wx?.timezone,true)):'Not supplied'}</p><small>Alert ID: ${esc(a.id||'Not supplied')}</small></details></article>`).join('');
   // Preserve expanded disclosures and focus on a redraw with unchanged data.
   if(S.alertPanelMarkup!==markup){$('alertsContent').innerHTML=markup;S.alertPanelMarkup=markup;}
   $('alertsRetry').disabled=S.alertState==='loading'||!hasCoordinates(L)||S.busy;
@@ -599,7 +612,7 @@ function wireRecovery(){
 }
 function openForecast(tab,hour){
   if(!['hourly','daily'].includes(tab)||!S.wx)return;
-  S.tab=tab;render();
+  S.tab=tab==='daily'?'now':tab;render();
   const target=(hour&&$('hour-'+hour))||$(tab+'-heading');
   target?.focus({preventScroll:true});
   target?.scrollIntoView({block:'start',behavior:'instant'});
@@ -616,7 +629,7 @@ function render(){
 }
 function renderView(){
   const wx=S.wx,B=$('body'),L=S.locations.find(l=>l.id===S.sel);
-  $('locName').textContent='📍 '+(wx?.location||L?.name||'Choose location')+' ▾';
+  $('locName').textContent=(wx?.location||L?.name||'Choose location')+' ▾';
   // Retain ready frames across forecast navigation; playback is viewport gated.
   renderAlerts();
   $('offlineBar').style.display=S.error||S.busy&&wx?'block':'none';
@@ -639,11 +652,11 @@ function renderView(){
     return;
   }
 
-  $('tabs').innerHTML=[['now','🌡️','Now'],['hourly','🕐','Hourly'],['daily','📅','10-Day'],['radar','🛰️','Radar']]
-    .map(([id,ic,lb])=>`<button id="tab-${id}" aria-current="${S.tab===id?'page':'false'}" class="${S.tab===id?'on':''}" data-t="${id}"><span class="ic" aria-hidden="true">${ic}</span>${lb}</button>`).join('');
+  $('tabs').innerHTML=[['now','sun','Forecast'],['hourly','clock','Hourly'],['radar','radar','Radar']]
+    .map(([id,ic,lb])=>`<button id="tab-${id}" aria-current="${S.tab===id?'page':'false'}" class="${S.tab===id?'on':''}" data-t="${id}"><span class="ic" aria-hidden="true">${WeatherUI.controlIcon(ic)}</span>${lb}</button>`).join('');
   $('tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render();});
 
-  if(S.tab==='now')         B.innerHTML=secNow(wx,12)+footer(wx);
+  if(S.tab==='now')         B.innerHTML=secNow(wx,6)+secDaily(wx)+footer(wx);
   else if(S.tab==='hourly') B.innerHTML=secHourly(wx,true);
   else if(S.tab==='daily')  B.innerHTML=secDaily(wx);
   else if(S.tab==='radar'){ B.innerHTML=secRadar(); wireRadar();ensureRadar(); }
@@ -695,15 +708,15 @@ function removeLocation(id){
 /* ================= LOCATIONS SHEET ================= */
 const previewAttempted=new Set();
 let dialogReturnFocus=null,activeDialog=null;
-const backgroundIds=['body','tabs','alertSlot','offlineBar'];
+const backgroundIds=['body','tabs','offlineBar'];
 function showDialog(id,focusId){
-  dialogReturnFocus=document.activeElement;activeDialog=id;$('btnAlerts').setAttribute('aria-expanded',String(id==='alertsPanel'));
+  dialogReturnFocus=document.activeElement;activeDialog=id;$('dialogShade').hidden=false;$('btnAlerts').setAttribute('aria-expanded',String(id==='alertsPanel'));$('alertSummary').setAttribute('aria-expanded',String(id==='alertsPanel'));
   for(const name of ['sheet','diag','alertsPanel'])$(name).hidden=name!==id;
   for(const el of [document.querySelector('.head'),...backgroundIds.map($)].filter(Boolean)){el.inert=true;el.setAttribute('aria-hidden','true');}
   $(focusId||id).focus();
 }
 function hideDialog(){
-  if(activeDialog)$(activeDialog).hidden=true;activeDialog=null;$('btnAlerts').setAttribute('aria-expanded','false');ensureRadar();
+  if(activeDialog)$(activeDialog).hidden=true;activeDialog=null;$('dialogShade').hidden=true;$('btnAlerts').setAttribute('aria-expanded','false');$('alertSummary').setAttribute('aria-expanded','false');ensureRadar();
   for(const el of [document.querySelector('.head'),...backgroundIds.map($)].filter(Boolean)){el.inert=false;el.removeAttribute('aria-hidden');}
   (dialogReturnFocus?.isConnected?dialogReturnFocus:$('locBtn')).focus();
 }
@@ -713,6 +726,7 @@ $('locBtn').onclick=()=>openSheet(false);
 $('btnSearch').onclick=()=>openSheet(true);
 $('sheetClose').onclick=closeSheet;
 $('btnAlerts').onclick=()=>{showDialog('alertsPanel','alertsClose');renderAlerts();};
+$('alertSummary').onclick=$('btnAlerts').onclick;
 $('alertsClose').onclick=hideDialog;
 $('alertsRetry').onclick=()=>{const L=S.locations.find(l=>l.id===S.sel);if(hasCoordinates(L)&&!S.busy)loadFor(L,true);};
 const colorQuery=window.matchMedia('(prefers-color-scheme: dark)');
@@ -727,6 +741,7 @@ function applyTheme(){
 $('themePreference').onchange=e=>{themePreference=Experience.preference(e.target.value);store.set('theme',themePreference);applyTheme();};
 colorQuery.addEventListener('change',()=>{if(themePreference==='system')applyTheme();});
 applyTheme();
+for(const [id,icon] of [['btnSearch','pin'],['btnRefresh','refresh'],['sheetClose','close'],['diagClose','close'],['alertsClose','close']])$(id).innerHTML=WeatherUI.controlIcon(icon);
 document.addEventListener('keydown',e=>{
   if(!activeDialog)return;
   if(e.key==='Escape'){e.preventDefault();if(activeDialog==='sheet')closeSheet();else hideDialog();return;}
@@ -865,7 +880,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('online',refreshSelected);
 
 /* ================= SWIPE NAVIGATION (phone layout) ================= */
-const TABS=['now','hourly','daily','radar'];
+const TABS=['now','hourly','radar'];
 const tabsVisible=()=>!S.wide&&getComputedStyle($('tabs')).display!=='none';
 let swX=0,swY=0,swOn=false;
 $('body').addEventListener('touchstart',e=>{
@@ -891,7 +906,7 @@ $('body').addEventListener('touchend',e=>{
 // Open by tapping the version line in the Now tab footer.
 // Diagnostics are reachable from the labelled header button.
 $('diagClose').onclick=hideDialog;
-$('btnDiagnostics').onclick=()=>showDialog('diag','diagRun');
+$('btnDiagnostics').onclick=()=>showDialog('diag','themePreference');
 $('diagCopy').onclick=async()=>{
   const t=$('diagOut').textContent;
   try{await navigator.clipboard.writeText(t);$('diagCopy').textContent='Copied ✓';}
